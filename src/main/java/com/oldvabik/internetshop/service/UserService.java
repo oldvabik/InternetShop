@@ -2,12 +2,13 @@ package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.model.User;
 import com.oldvabik.internetshop.repository.UserRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 
 @Service
@@ -19,16 +20,37 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(users);
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public ResponseEntity<User> getUserById(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(user);
     }
 
-    public List<User> getUsersByFirstName(String firstName) {
-        return userRepository.findByFirstName(firstName);
+    public ResponseEntity<List<User>> getUsersByFirstNameAndAge(String firstName, Integer age) {
+        List<User> users;
+        if (firstName != null && age != null) {
+            users = userRepository.findByFirstNameAndAge(firstName, age);
+        } else if (firstName != null) {
+            users = userRepository.findByFirstName(firstName);
+        } else if (age != null) {
+            users = userRepository.findByAge(age);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        if (users.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(users);
     }
 
     public User createUser(User user) {
@@ -40,7 +62,8 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void updateUser(Long id, String firstName, String lastName, String email, LocalDate dateOfBirth) {
+    public void updateUser(Long id, String firstName, String lastName,
+                           String email, LocalDate dateOfBirth) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
             throw new IllegalStateException("User not found");

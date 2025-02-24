@@ -2,12 +2,12 @@ package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.model.Category;
 import com.oldvabik.internetshop.repository.CategoryRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class CategoryService {
+
     private final CategoryRepository categoryRepository;
 
     public CategoryService(CategoryRepository categoryRepository) {

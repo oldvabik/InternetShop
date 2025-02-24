@@ -2,12 +2,12 @@ package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.model.Order;
 import com.oldvabik.internetshop.repository.OrderRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
+
     private final OrderRepository orderRepository;
 
     public OrderService(OrderRepository orderRepository) {
