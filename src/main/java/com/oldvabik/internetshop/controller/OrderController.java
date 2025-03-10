@@ -1,8 +1,10 @@
 package com.oldvabik.internetshop.controller;
 
+import com.oldvabik.internetshop.dto.OrderDto;
 import com.oldvabik.internetshop.model.Order;
 import com.oldvabik.internetshop.service.OrderService;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api")
 public class OrderController {
 
     private final OrderService orderService;
@@ -22,30 +24,41 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @GetMapping
-    public List<Order> getAllOrders() {
+    @PostMapping("/users/{userId}/orders")
+    public ResponseEntity<Order> createOrder(@PathVariable Long userId, @RequestBody OrderDto orderDto) {
+        return orderService.createOrder(userId, orderDto);
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<Order>> getAllOrders() {
         return orderService.getAllOrders();
     }
 
-    @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable Long id) {
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id);
     }
 
-    @PostMapping
-    public Order createOrder(@RequestBody Order order) {
-        return orderService.saveOrder(order);
+    @GetMapping("/users/{userId}/orders")
+    public ResponseEntity<List<Order>> getUserOrders(@PathVariable Long userId) {
+        return orderService.getUserOrders(userId);
     }
 
-    @PutMapping("/{id}")
-    public Order updateOrder(@PathVariable Long id, @RequestBody Order order) {
-        order.setId(id);
-        return orderService.saveOrder(order);
+    @GetMapping("/users/{userId}/orders/{orderId}")
+    public ResponseEntity<Order> getUserOrderById(@PathVariable Long userId, @PathVariable Long orderId) {
+        return orderService.getUserOrderById(userId, orderId);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteOrder(@PathVariable Long id) {
-        orderService.deleteOrder(id);
+    @PutMapping("/users/{userId}/orders/{orderId}")
+    public ResponseEntity<Order> updateOrder(@PathVariable Long userId,
+                                             @PathVariable Long orderId,
+                                             @RequestBody OrderDto orderDto) {
+        return orderService.updateOrder(userId, orderId, orderDto);
     }
+
+    @DeleteMapping("/users/{userId}/orders/{orderId}")
+    public void deleteUserOrderById(@PathVariable Long userId, @PathVariable Long orderId) {
+        orderService.deleteUserOrderById(userId, orderId);
+    }
+
 }
-

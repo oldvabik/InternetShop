@@ -1,26 +1,36 @@
 package com.oldvabik.internetshop.service;
 
+import com.oldvabik.internetshop.dto.UserDto;
+import com.oldvabik.internetshop.mapper.UserMapper;
 import com.oldvabik.internetshop.model.User;
 import com.oldvabik.internetshop.repository.UserRepository;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
-    public ResponseEntity<List<User>> getAllUsers() {
+    public User createUser(UserDto userDto) {
+        Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
+        if (optionalUser.isPresent()) {
+            throw new IllegalStateException("User already exists");
+        }
+        User user = userMapper.toEntity(userDto);
+        return userRepository.save(user);
+    }
+
+    public ResponseEntity<List<User>> getUsers() {
         List<User> users = userRepository.findAll();
         if (users.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -36,69 +46,42 @@ public class UserService {
         return ResponseEntity.ok(user);
     }
 
-    public ResponseEntity<List<User>> getUsersByFirstNameAndAge(String firstName, Integer age) {
-        List<User> users;
-        if (firstName != null && age != null) {
-            users = userRepository.findByFirstNameAndAge(firstName, age);
-        } else if (firstName != null) {
-            users = userRepository.findByFirstName(firstName);
-        } else if (age != null) {
-            users = userRepository.findByAge(age);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(users);
-    }
-
-    public User createUser(User user) {
-        Optional<User> optionalUser = userRepository.findByEmail(user.getEmail());
-        if (optionalUser.isPresent()) {
-            throw new IllegalStateException("User already exists");
-        }
-        user.setAge(Period.between(user.getDateOfBirth(), LocalDate.now()).getYears());
-        return userRepository.save(user);
-    }
-
-    public void updateUser(Long id, String firstName, String lastName,
-                           String email, LocalDate dateOfBirth) {
+    public User updateUser(Long id, UserDto userDto) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
-            throw new IllegalStateException("User not found");
+            throw new IllegalStateException("User does not exist");
         }
         User user = optionalUser.get();
 
-        if (email != null && !email.equals(user.getEmail())) {
-            Optional<User> foundByEmail = userRepository.findByEmail(email);
-            if (foundByEmail.isPresent()) {
+        if (userDto.getEmail() != null && !userDto.getEmail().equals(user.getEmail())) {
+            Optional<User> foundUser = userRepository.findByEmail(userDto.getEmail());
+            if (foundUser.isPresent()) {
                 throw new IllegalStateException("User already exists");
             }
-            user.setEmail(email);
+            user.setEmail(userDto.getEmail());
         }
 
-        if (firstName != null && !firstName.equals(user.getFirstName())) {
-            user.setFirstName(firstName);
+        if (userDto.getFirstName() != null && !userDto.getFirstName().equals(user.getFirstName())) {
+            user.setFirstName(userDto.getFirstName());
         }
 
-        if (lastName != null && !lastName.equals(user.getLastName())) {
-            user.setLastName(lastName);
+        if (userDto.getLastName() != null && !userDto.getLastName().equals(user.getLastName())) {
+            user.setLastName(userDto.getLastName());
         }
 
-        if (dateOfBirth != null && !dateOfBirth.equals(user.getDateOfBirth())) {
-            user.setDateOfBirth(dateOfBirth);
-            user.setAge(Period.between(user.getDateOfBirth(), LocalDate.now()).getYears());
+        if (userDto.getAge() != null && !userDto.getAge().equals(user.getAge())) {
+            user.setAge(userDto.getAge());
         }
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUserById(Long id) {
         Optional<User> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
-            throw new IllegalStateException("User not found");
+            throw new IllegalStateException("User does not exist");
         }
         userRepository.deleteById(id);
     }
+
 }
