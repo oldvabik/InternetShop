@@ -7,7 +7,6 @@ import com.oldvabik.internetshop.model.User;
 import com.oldvabik.internetshop.repository.OrderRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import com.oldvabik.internetshop.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +31,6 @@ public class OrderService {
         this.productRepository = productRepository;
     }
 
-    @Transactional
     public ResponseEntity<Order> createOrder(Long id, OrderDto orderDto) {
         Optional<User> user = userRepository.findById(id);
         if (user.isEmpty()) {
