@@ -8,9 +8,16 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
+    // SELECT o.*, p.* FROM orders o
+    // LEFT JOIN order_product op ON o.id = op.order_id
+    // LEFT JOIN products p ON op.product_id = p.id
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products")
     List<Order> findAllWithProducts();
 
+    // SELECT o.*, p.* FROM orders o
+    // LEFT JOIN order_product op ON o.id = op.order_id
+    // LEFT JOIN products p ON op.product_id = p.id
+    // WHERE o.id = :id
     @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products WHERE o.id = :id")
     Order findWithProductsById(@Param("id") Long id);
 
