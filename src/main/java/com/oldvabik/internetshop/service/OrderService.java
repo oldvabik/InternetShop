@@ -1,5 +1,6 @@
 package com.oldvabik.internetshop.service;
 
+import com.oldvabik.internetshop.cache.OrderCache;
 import com.oldvabik.internetshop.dto.OrderDto;
 import com.oldvabik.internetshop.model.Order;
 import com.oldvabik.internetshop.model.Product;
@@ -20,13 +21,16 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final OrderCache orderCache;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository,
+                        OrderCache orderCache,
                         UserRepository userRepository,
                         ProductRepository productRepository) {
         this.orderRepository = orderRepository;
+        this.orderCache = orderCache;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
     }
@@ -60,7 +64,9 @@ public class OrderService {
         order.setUser(user.get());
         order.setDate(LocalDate.now());
 
-        return ResponseEntity.ok(orderRepository.save(order));
+        order = orderRepository.save(order);
+        orderCache.put(order.getId(), order);
+        return ResponseEntity.ok(order);
     }
 
     public ResponseEntity<List<Order>> getAllOrders() {
@@ -72,9 +78,14 @@ public class OrderService {
     }
 
     public ResponseEntity<Order> getOrderById(Long id) {
-        Order order = orderRepository.findWithProductsById(id);
+        Order order = orderCache.get(id);
         if (order == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            order = orderRepository.findById(id).orElse(null);
+            if (order != null) {
+                orderCache.put(id, order);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
         }
         return ResponseEntity.ok(order);
     }
@@ -122,7 +133,9 @@ public class OrderService {
         order.setProducts(products);
         order.setTotalPrice(totalPrice);
 
-        return ResponseEntity.ok(orderRepository.save(order));
+        order = orderRepository.save(order);
+        orderCache.put(order.getId(), order);
+        return ResponseEntity.ok(order);
     }
 
     public void deleteUserOrderById(Long userId, Long orderId) {
@@ -131,6 +144,7 @@ public class OrderService {
             throw new IllegalStateException("Order not found");
         }
         orderRepository.delete(order);
+        orderCache.remove(order.getId());
     }
 
 }

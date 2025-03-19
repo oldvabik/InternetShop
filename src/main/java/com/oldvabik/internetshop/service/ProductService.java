@@ -1,5 +1,6 @@
 package com.oldvabik.internetshop.service;
 
+import com.oldvabik.internetshop.cache.ProductCache;
 import com.oldvabik.internetshop.dto.ProductDto;
 import com.oldvabik.internetshop.mapper.ProductMapper;
 import com.oldvabik.internetshop.model.Category;
@@ -19,16 +20,19 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
+    private final ProductCache productCache;
 
     public ProductService(ProductRepository productRepository,
                           CategoryRepository categoryRepository,
-                          ProductMapper productMapper) {
+                          ProductMapper productMapper,
+                          ProductCache productCache) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.productMapper = productMapper;
+        this.productCache = productCache;
     }
 
-    public Product createProduct(@RequestBody ProductDto productDto) {
+    public Product createProduct(ProductDto productDto) {
         Optional<Category> optionalCategory = categoryRepository.findByName(productDto.getCategoryName());
         if (optionalCategory.isEmpty()) {
             throw new IllegalStateException(
@@ -42,7 +46,9 @@ public class ProductService {
                     String.format("Product with name %s already exists", product.getName())
             );
         }
-        return productRepository.save(product);
+        product = productRepository.save(product);
+        productCache.put(product.getId(), product);
+        return product;
     }
 
     public ResponseEntity<List<Product>> getProducts() {
@@ -54,14 +60,18 @@ public class ProductService {
     }
 
     public ResponseEntity<Product> getProduct(Long id) {
-        Product product = productRepository.findById(id).orElse(null);
+        Product product = productCache.get(id);
         if (product == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            product = productRepository.findById(id).orElse(null);
+            if (product != null) {
+                productCache.put(id, product);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
         }
         return ResponseEntity.ok(product);
     }
 
-    // пересмотреть
     public Product updateProduct(Long id, @RequestBody ProductDto productDto) {
         Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
@@ -97,7 +107,9 @@ public class ProductService {
             product.setCategory(optionalCategory.get());
         }
 
-        return productRepository.save(product);
+        product = productRepository.save(product);
+        productCache.put(product.getId(), product);
+        return product;
     }
 
     public void deleteProduct(Long id) {
@@ -108,6 +120,7 @@ public class ProductService {
             );
         }
         productRepository.deleteById(id);
+        productCache.remove(id);
     }
 
 }

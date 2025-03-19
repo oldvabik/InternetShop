@@ -49,4 +49,9 @@ public class UserController {
         userService.deleteUserById(id);
     }
 
+    @DeleteMapping("/cache")
+    public void clearCache() {
+        userService.clearCache();
+    }
+
 }

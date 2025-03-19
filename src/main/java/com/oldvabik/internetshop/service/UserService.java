@@ -1,5 +1,6 @@
 package com.oldvabik.internetshop.service;
 
+import com.oldvabik.internetshop.cache.UserCache;
 import com.oldvabik.internetshop.dto.UserDto;
 import com.oldvabik.internetshop.mapper.UserMapper;
 import com.oldvabik.internetshop.model.User;
@@ -15,10 +16,14 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserCache userCache;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
+    public UserService(UserRepository userRepository,
+                       UserMapper userMapper,
+                       UserCache userCache) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.userCache = userCache;
     }
 
     public User createUser(UserDto userDto) {
@@ -27,7 +32,9 @@ public class UserService {
             throw new IllegalStateException("User already exists");
         }
         User user = userMapper.toEntity(userDto);
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        userCache.put(user.getId(), user);
+        return user;
     }
 
     public ResponseEntity<List<User>> getUsers() {
@@ -39,9 +46,14 @@ public class UserService {
     }
 
     public ResponseEntity<User> getUserById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
+        User user = userCache.get(id);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            user = userRepository.findById(id).orElse(null);
+            if (user != null) {
+                userCache.put(id, user);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
         }
         return ResponseEntity.ok(user);
     }
@@ -72,8 +84,9 @@ public class UserService {
         if (userDto.getAge() != null && !userDto.getAge().equals(user.getAge())) {
             user.setAge(userDto.getAge());
         }
-
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        userCache.put(user.getId(), user);
+        return user;
     }
 
     public void deleteUserById(Long id) {
@@ -82,6 +95,11 @@ public class UserService {
             throw new IllegalStateException("User does not exist");
         }
         userRepository.deleteById(id);
+        userCache.remove(id);
+    }
+
+    public void clearCache() {
+        userCache.clear();
     }
 
 }

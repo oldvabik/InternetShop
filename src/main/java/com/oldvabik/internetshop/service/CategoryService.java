@@ -1,5 +1,6 @@
 package com.oldvabik.internetshop.service;
 
+import com.oldvabik.internetshop.cache.CategoryCache;
 import com.oldvabik.internetshop.dto.CategoryDto;
 import com.oldvabik.internetshop.mapper.CategoryMapper;
 import com.oldvabik.internetshop.model.Category;
@@ -17,13 +18,16 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final CategoryCache categoryCache;
     private final ProductRepository productRepository;
 
     public CategoryService(CategoryRepository categoryRepository,
                            CategoryMapper categoryMapper,
+                           CategoryCache categoryCache,
                            ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.categoryCache = categoryCache;
         this.productRepository = productRepository;
     }
 
@@ -35,7 +39,9 @@ public class CategoryService {
                     String.format("Category with name %s already exists", category.getName())
             );
         }
-        return categoryRepository.save(category);
+        category = categoryRepository.save(category);
+        categoryCache.put(category.getId(), category);
+        return category;
     }
 
     public ResponseEntity<List<Category>> getCategories() {
@@ -47,9 +53,14 @@ public class CategoryService {
     }
 
     public ResponseEntity<Category> getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id).orElse(null);
+        Category category = categoryCache.get(id);
         if (category == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            category = categoryRepository.findById(id).orElse(null);
+            if (category != null) {
+                categoryCache.put(id, category);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
         }
         return ResponseEntity.ok(category);
     }
@@ -71,7 +82,9 @@ public class CategoryService {
             }
             category.setName(categoryDto.getName());
         }
-        return categoryRepository.save(category);
+        category = categoryRepository.save(category);
+        categoryCache.put(id, category);
+        return category;
     }
 
     public void deleteCategoryById(Long id) {
@@ -82,6 +95,7 @@ public class CategoryService {
             );
         }
         categoryRepository.delete(optionalCategory.get());
+        categoryCache.remove(id);
     }
 
     public ResponseEntity<List<Product>> getProductsByCategory(Long categoryId) {
