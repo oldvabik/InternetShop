@@ -80,7 +80,7 @@ public class OrderService {
     public ResponseEntity<Order> getOrderById(Long id) {
         Order order = orderCache.get(id);
         if (order == null) {
-            order = orderRepository.findById(id).orElse(null);
+            order = orderRepository.findWithProductsById(id);
             if (order != null) {
                 orderCache.put(id, order);
             } else {
