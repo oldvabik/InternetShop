@@ -5,9 +5,8 @@ import com.oldvabik.internetshop.model.Category;
 import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
-import java.util.List;
-
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

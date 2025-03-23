@@ -3,11 +3,9 @@ package com.oldvabik.internetshop.controller;
 import com.oldvabik.internetshop.dto.ProductDto;
 import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.service.ProductService;
-import java.util.List;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.ResponseEntity;
+import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

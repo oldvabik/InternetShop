@@ -1,0 +1,33 @@
+2025-03-24 01:30:10.091 [main] ERROR o.s.boot.SpringApplication - Application run failedjava.lang.IllegalStateException: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@15eebbff - No evaluator set for filter null
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initializeSystem(LoggingApplicationListener.java:347)
+Caused by: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@15eebbff - No evaluator set for filter null
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.reportConfigurationErrorsIfNecessary(LogbackLoggingSystem.java:291)
+	Suppressed: java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+		at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+
+2025-03-24 01:30:54.681 [main] ERROR o.s.boot.SpringApplication - Application run failedjava.lang.IllegalStateException: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@4f0100a7 - No evaluator set for filter null
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initializeSystem(LoggingApplicationListener.java:347)
+Caused by: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@4f0100a7 - No evaluator set for filter null
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.reportConfigurationErrorsIfNecessary(LogbackLoggingSystem.java:291)
+	Suppressed: java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+		at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+
+2025-03-24 01:35:46.975 [main] ERROR o.s.boot.SpringApplication - Application run failedjava.lang.IllegalStateException: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@1bb1fde8 - No evaluator set for filter null
+	at org.springframework.boot.context.logging.LoggingApplicationListener.initializeSystem(LoggingApplicationListener.java:347)
+Caused by: java.lang.IllegalStateException: Logback configuration error detected: 
+ERROR in ch.qos.logback.core.model.processor.ImplicitModelHandler - Could not create component [evaluator] of type [ch.qos.logback.classic.boolex.JaninoEventEvaluator] java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+ERROR in ch.qos.logback.core.filter.EvaluatorFilter@1bb1fde8 - No evaluator set for filter null
+	at org.springframework.boot.logging.logback.LogbackLoggingSystem.reportConfigurationErrorsIfNecessary(LogbackLoggingSystem.java:291)
+	Suppressed: java.lang.ClassNotFoundException: ch.qos.logback.classic.boolex.JaninoEventEvaluator
+		at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+

@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogService {
 
-    private static final String LOGS_DIR = "logs";
+    private static final String LOGS_DIR = "log";
     private static final DateTimeFormatter INPUT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final DateTimeFormatter LOG_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 

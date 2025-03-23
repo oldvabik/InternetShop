@@ -20,6 +20,7 @@ mvnw.cmd
 ### IntelliJ IDEA ###
 .sonarlint
 .idea
+/src/main/java/com/oldvabik/internetshop/log
 *.iws
 *.iml
 *.ipr
@@ -36,3 +37,4 @@ build/
 
 ### VS Code ###
 .vscode/
+log
