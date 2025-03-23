@@ -4,7 +4,10 @@ import com.oldvabik.internetshop.dto.CategoryDto;
 import com.oldvabik.internetshop.model.Category;
 import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/categories")
+@Tag(name = "Category API", description = "Manage product categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -26,36 +30,49 @@ public class CategoryController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new category", description = "Creates a category based on the provided data")
     public Category createCategory(@RequestBody CategoryDto categoryDto) {
         return categoryService.createCategory(categoryDto);
     }
 
     @GetMapping
-    public ResponseEntity<List<Category>> getCategories() {
+    @Operation(summary = "Get all categories", description = "Returns a list of all categories")
+    public List<Category> getCategories() {
         return categoryService.getCategories();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
+    @Operation(summary = "Get category by ID", description = "Returns a category by its unique identifier")
+    public Category getCategoryById(@PathVariable Long id) {
         return categoryService.getCategoryById(id);
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update category details", description = "Updates category information by ID")
     public Category updateCategory(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
         return categoryService.updateCategory(id, categoryDto);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a category", description = "Deletes a category by its unique identifier")
     public void deleteCategoryById(@PathVariable Long id) {
         categoryService.deleteCategoryById(id);
     }
 
     @GetMapping("/{categoryId}/products")
+    @Operation(
+            summary = "Get products by category",
+            description = "Returns a list of products belonging to a specific category"
+    )
     public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
         return categoryService.getProductsByCategory(categoryId);
     }
 
     @GetMapping("/{categoryId}/products/{productId}")
+    @Operation(
+            summary = "Get product by ID within a category",
+            description = "Returns a product by its ID within a specific category"
+    )
     public ResponseEntity<Product> getProductById(@PathVariable Long categoryId, @PathVariable Long productId) {
         return categoryService.getProductById(categoryId, productId);
     }

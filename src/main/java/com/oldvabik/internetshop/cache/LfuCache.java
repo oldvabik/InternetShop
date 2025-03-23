@@ -30,7 +30,6 @@ public abstract class LfuCache<T> {
             return null;
         }
         entry.frequency++;
-        log.info("Successfully retrieved item from cache. ID: {}, Access frequency: {}", id, entry.frequency);
         return entry.value;
     }
 
@@ -39,13 +38,11 @@ public abstract class LfuCache<T> {
             Entry<T> entry = cache.get(id);
             entry.value = value;
             entry.frequency++;
-            log.info("Item updated in cache. ID: {}, New frequency: {}", id, entry.frequency);
         } else {
             if (cache.size() >= capacity) {
                 evictLeastFrequentlyUsed();
             }
             cache.put(id, new Entry<>(value));
-            log.info("New item added to cache. ID: {}", id);
         }
     }
 
@@ -62,18 +59,14 @@ public abstract class LfuCache<T> {
 
         if (lfuKey != null) {
             cache.remove(lfuKey);
-            log.info("Evicted item from cache. ID: {}, Frequency at removal: {}", lfuKey, minFrequency);
         }
     }
 
     public void remove(Long id) {
-        if (cache.remove(id) != null) {
-            log.info("Item successfully removed from cache. ID: {}", id);
-        }
+        cache.remove(id);
     }
 
     public void clear() {
         cache.clear();
-        log.info("All items have been successfully cleared from the cache.");
     }
 }

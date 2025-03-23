@@ -2,15 +2,17 @@ package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.cache.UserCache;
 import com.oldvabik.internetshop.dto.UserDto;
+import com.oldvabik.internetshop.exception.AlreadyExistsException;
+import com.oldvabik.internetshop.exception.ResourceNotFoundException;
 import com.oldvabik.internetshop.mapper.UserMapper;
 import com.oldvabik.internetshop.model.User;
 import com.oldvabik.internetshop.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -27,48 +29,56 @@ public class UserService {
     }
 
     public User createUser(UserDto userDto) {
-        Optional<User> optionalUser = userRepository.findByEmail(userDto.getEmail());
-        if (optionalUser.isPresent()) {
-            throw new IllegalStateException("User already exists");
+        if (userRepository.existsByEmail(userDto.getEmail())) {
+            throw new AlreadyExistsException("User with email " + userDto.getEmail() + " already exists");
         }
+        log.info("Creating new user: {} {}", userDto.getFirstName(), userDto.getLastName());
         User user = userMapper.toEntity(userDto);
-        user = userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        userCache.put(savedUser.getId(), savedUser);
+        log.info("User with id {} created and cached", savedUser.getId());
+        return savedUser;
+    }
+
+    public List<User> getUsers() {
+        List<User> users = userRepository.findAll();
+        if (users.isEmpty()) {
+            throw new ResourceNotFoundException("Users not found");
+        }
+
+        for (User user : users) {
+            if (userCache.get(user.getId()) == null) {
+                userCache.put(user.getId(), user);
+                log.info("User with id {} added to cache", user.getId());
+            } else {
+                log.info("User with id {} already exists in cache", user.getId());
+            }
+        }
+        return users;
+    }
+
+    public User getUserById(Long id) {
+        User cachedUser = userCache.get(id);
+        if (cachedUser != null) {
+            log.info("User with id {} retrieved from cache", id);
+            return cachedUser;
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
         userCache.put(user.getId(), user);
+        log.info("User with id {} retrieved from repository", id);
         return user;
     }
 
-    public ResponseEntity<List<User>> getUsers() {
-        List<User> users = userRepository.findAll();
-        if (users.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(users);
-    }
-
-    public ResponseEntity<User> getUserById(Long id) {
-        User user = userCache.get(id);
-        if (user == null) {
-            user = userRepository.findById(id).orElse(null);
-            if (user != null) {
-                userCache.put(id, user);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-        }
-        return ResponseEntity.ok(user);
-    }
-
     public User updateUser(Long id, UserDto userDto) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalStateException("User does not exist");
-        }
-        User user = optionalUser.get();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
 
         if (userDto.getEmail() != null && !userDto.getEmail().equals(user.getEmail())) {
             Optional<User> foundUser = userRepository.findByEmail(userDto.getEmail());
             if (foundUser.isPresent()) {
-                throw new IllegalStateException("User already exists");
+                throw new AlreadyExistsException("User with email " + userDto.getEmail() + " already exists");
             }
             user.setEmail(userDto.getEmail());
         }
@@ -90,16 +100,12 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalStateException("User does not exist");
-        }
-        userRepository.deleteById(id);
-        userCache.remove(id);
-    }
-
-    public void clearCache() {
-        userCache.clear();
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        log.warn("Deleting user with id {}", user.getId());
+        userRepository.delete(user);
+        userCache.remove(user.getId());
+        log.info("User with id {} deleted from cache", user.getId());
     }
 
 }

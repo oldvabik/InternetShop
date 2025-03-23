@@ -2,6 +2,8 @@ package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.cache.CategoryCache;
 import com.oldvabik.internetshop.dto.CategoryDto;
+import com.oldvabik.internetshop.exception.AlreadyExistsException;
+import com.oldvabik.internetshop.exception.ResourceNotFoundException;
 import com.oldvabik.internetshop.mapper.CategoryMapper;
 import com.oldvabik.internetshop.model.Category;
 import com.oldvabik.internetshop.model.Product;
@@ -9,10 +11,11 @@ import com.oldvabik.internetshop.repository.CategoryRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class CategoryService {
 
@@ -32,53 +35,58 @@ public class CategoryService {
     }
 
     public Category createCategory(CategoryDto categoryDto) {
-        Category category = categoryMapper.toEntity(categoryDto);
-        Optional<Category> categoryOptional = categoryRepository.findByName(category.getName());
-        if (categoryOptional.isPresent()) {
-            throw new IllegalStateException(
-                    String.format("Category with name %s already exists", category.getName())
-            );
+        if (categoryRepository.existsByName(categoryDto.getName())) {
+            throw new AlreadyExistsException("Category with name " + categoryDto.getName() + " already exists");
         }
-        category = categoryRepository.save(category);
+        log.info("Creating new category: {}", categoryDto.getName());
+        Category category = categoryMapper.toEntity(categoryDto);
+        Category savedCategory = categoryRepository.save(category);
+        categoryCache.put(savedCategory.getId(), savedCategory);
+        log.info("Category with id {} created and cached", savedCategory.getId());
+        return savedCategory;
+    }
+
+    public List<Category> getCategories() {
+        List<Category> categories = categoryRepository.findAll();
+
+        if (categories.isEmpty()) {
+            throw new ResourceNotFoundException("Categories not found");
+        }
+
+        for (Category category : categories) {
+            if (categoryCache.get(category.getId()) == null) {
+                categoryCache.put(category.getId(), category);
+                log.info("Category with id {} added to cache", category.getId());
+            } else {
+                log.info("Category with id {} already exists in cache", category.getId());
+            }
+        }
+
+        return categories;
+    }
+
+    public Category getCategoryById(Long id) {
+        Category cachedCategory = categoryCache.get(id);
+        if (cachedCategory != null) {
+            log.info("Category with id {} retrieved from cache", id);
+            return cachedCategory;
+        }
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
         categoryCache.put(category.getId(), category);
+        log.info("Category with id {} retrieved from repository", category.getId());
         return category;
     }
 
-    public ResponseEntity<List<Category>> getCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        if (categories.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(categories);
-    }
-
-    public ResponseEntity<Category> getCategoryById(Long id) {
-        Category category = categoryCache.get(id);
-        if (category == null) {
-            category = categoryRepository.findById(id).orElse(null);
-            if (category != null) {
-                categoryCache.put(id, category);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-        }
-        return ResponseEntity.ok(category);
-    }
-
     public Category updateCategory(Long id, CategoryDto categoryDto) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
-        if (optionalCategory.isEmpty()) {
-            throw new IllegalStateException(
-                    String.format("Category with id %s does not exist", id)
-            );
-        }
-        Category category = optionalCategory.get();
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
+
         if (categoryDto.getName() != null && !categoryDto.getName().equals(category.getName())) {
             Optional<Category> foundCategory = categoryRepository.findByName(categoryDto.getName());
             if (foundCategory.isPresent()) {
-                throw new IllegalStateException(
-                        String.format("Category with name %s already exists", categoryDto.getName())
-                );
+                throw new AlreadyExistsException("Category with name " + categoryDto.getName() + " already exists");
             }
             category.setName(categoryDto.getName());
         }
@@ -88,20 +96,18 @@ public class CategoryService {
     }
 
     public void deleteCategoryById(Long id) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
-        if (optionalCategory.isEmpty()) {
-            throw new IllegalStateException(
-                    String.format("Category with id %s does not exist", id)
-            );
-        }
-        categoryRepository.delete(optionalCategory.get());
-        categoryCache.remove(id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
+        log.warn("Deleting category with id {}", category.getId());
+        categoryRepository.delete(category);
+        categoryCache.put(id, category);
+        log.info("Category with id {} deleted from cache", category.getId());
     }
 
     public ResponseEntity<List<Product>> getProductsByCategory(Long categoryId) {
         List<Product> products = productRepository.findByCategoryId(categoryId);
         if (products.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new ResourceNotFoundException("Product with id " + categoryId + " not found");
         }
         return ResponseEntity.ok(products);
     }
@@ -109,7 +115,7 @@ public class CategoryService {
     public ResponseEntity<Product> getProductById(Long categoryId, Long productId) {
         Product product = productRepository.findByIdAndCategoryId(productId, categoryId);
         if (product == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new ResourceNotFoundException("Product with id " + productId + " not found");
         }
         return ResponseEntity.ok(product);
     }

@@ -3,8 +3,6 @@ package com.oldvabik.internetshop.mapper;
 import com.oldvabik.internetshop.dto.ProductDto;
 import com.oldvabik.internetshop.model.Category;
 import com.oldvabik.internetshop.model.Product;
-import com.oldvabik.internetshop.repository.CategoryRepository;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,16 +16,12 @@ public class ProductMapper {
         return productDto;
     }
 
-    public Product toEntity(ProductDto productDto, CategoryRepository categoryRepository) {
+    public Product toEntity(ProductDto productDto, Category category) {
         Product product = new Product();
         product.setName(productDto.getName());
         product.setPrice(productDto.getPrice());
         if (productDto.getCategoryName() != null) {
-            Optional<Category> optionalCategory = categoryRepository.findByName(productDto.getCategoryName());
-            if (optionalCategory.isEmpty()) {
-                throw new IllegalArgumentException("Category not found");
-            }
-            product.setCategory(optionalCategory.get());
+            product.setCategory(category);
         }
         return product;
     }
