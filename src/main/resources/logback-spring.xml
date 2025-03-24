@@ -20,23 +20,9 @@
         <appender-ref ref="FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>
-    <logger name="c.o.i.service" level="INFO" additivity="false">
+    <logger name="com.oldvabik.internetshop.aspect" level="DEBUG" additivity="false">
         <appender-ref ref="FILE"/>
         <appender-ref ref="CONSOLE"/>
-    </logger>
-    <logger name="c.o.i.aspect" level="INFO" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-    <logger name="com.oldvabik.internetshop.aspect" level="INFO" additivity="false">
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="CONSOLE"/>
-    </logger>
-
-    <!-- Логгер для аспектов -->
-    <logger name="c.o.i.aspect" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
     </logger>
 
     <!-- Корневой логгер для остальных логов -->
