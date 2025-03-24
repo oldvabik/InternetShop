@@ -16,5 +16,5 @@ public class UserDto {
     @NotNull
     @Min(1)
     @Max(100)
-    private Long age;
+    private Integer age;
 }
