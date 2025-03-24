@@ -65,7 +65,7 @@ public class UserService {
         }
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userCache.put(user.getId(), user);
         log.info("User with id {} retrieved from repository", id);
         return user;
@@ -94,9 +94,11 @@ public class UserService {
         if (userDto.getAge() != null && !userDto.getAge().equals(user.getAge())) {
             user.setAge(userDto.getAge());
         }
-        user = userRepository.save(user);
-        userCache.put(user.getId(), user);
-        return user;
+        log.info("Updating user with id {}", user.getId());
+        User savedUser = userRepository.save(user);
+        userCache.put(savedUser.getId(), savedUser);
+        log.info("User with id {} updated and cached", savedUser.getId());
+        return savedUser;
     }
 
     public void deleteUserById(Long id) {

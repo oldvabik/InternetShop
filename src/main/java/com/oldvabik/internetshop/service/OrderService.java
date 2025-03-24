@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -27,6 +25,8 @@ public class OrderService {
     private final OrderCache orderCache;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+
+    private static final String ORDER_NOT_FOUND = "Order not found";
 
     public OrderService(OrderRepository orderRepository,
                         OrderCache orderCache,
@@ -39,8 +39,8 @@ public class OrderService {
     }
 
     public Order createOrder(Long id, OrderDto orderDto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        final User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = new Order();
         Set<Product> products = new HashSet<>();
@@ -48,7 +48,7 @@ public class OrderService {
 
         for (String productName : orderDto.getProductNames()) {
             Product product = productRepository.findByName(productName)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product with name " + productName + " not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
             products.add(product);
             totalPrice += product.getPrice();
         }
@@ -58,15 +58,17 @@ public class OrderService {
         order.setUser(user);
         order.setDate(LocalDate.now());
 
+        log.info("Creating order with user id {}", order.getUser().getId());
         Order savedOrder = orderRepository.save(order);
         orderCache.put(savedOrder.getId(), savedOrder);
+        log.info("Order with id {} created and cached", savedOrder.getId());
         return savedOrder;
     }
 
     public List<Order> getAllOrders() {
         List<Order> orders = orderRepository.findAllWithProducts();
         if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("Orders not found");
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
 
         for (Order order : orders) {
@@ -88,7 +90,7 @@ public class OrderService {
         }
 
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND));
         orderCache.put(id, order);
         log.info("Order with id {} retrieved from repository and cached", order.getId());
         return order;
@@ -97,7 +99,7 @@ public class OrderService {
     public List<Order> getUserOrders(Long userId) {
         List<Order> orders = orderRepository.findWithProductsByUserId(userId);
         if (orders.isEmpty()) {
-            throw new ResourceNotFoundException("Orders not found");
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
         return orders;
     }
@@ -111,7 +113,7 @@ public class OrderService {
 
         Order order = orderRepository.findWithProductsByIdAndUserId(orderId, userId);
         if (order == null) {
-            throw new ResourceNotFoundException("Order with id " + orderId + " not found");
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
         return order;
     }
@@ -119,7 +121,7 @@ public class OrderService {
     public Order updateOrder(Long userId, Long orderId, OrderDto orderDto) {
         Order order = orderRepository.findByUserIdAndId(userId, orderId);
         if (order == null) {
-            throw new ResourceNotFoundException("Order with id " + orderId + " not found");
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
         order.getProducts().clear();
 
@@ -129,7 +131,9 @@ public class OrderService {
         for (int i = 0; i < orderDto.getProductNames().size(); i++) {
             Optional<Product> optionalProduct = productRepository.findByName(orderDto.getProductNames().get(i));
             if (optionalProduct.isEmpty()) {
-                throw new ResourceNotFoundException("Product with name " + orderDto.getProductNames().get(i) + " not found");
+                throw new ResourceNotFoundException(
+                        "Product with name " + orderDto.getProductNames().get(i) + " not found"
+                );
             }
             Product product = optionalProduct.get();
             products.add(product);
@@ -139,15 +143,17 @@ public class OrderService {
         order.setProducts(products);
         order.setTotalPrice(totalPrice);
 
+        log.info("Update order with id {}", order.getId());
         Order savedOrder = orderRepository.save(order);
         orderCache.put(savedOrder.getId(), savedOrder);
-        return order;
+        log.info("Order with id {} updated and cached", order.getId());
+        return savedOrder;
     }
 
     public void deleteUserOrderById(Long userId, Long orderId) {
         Order order = orderRepository.findByUserIdAndId(userId, orderId);
         if (order == null) {
-            throw new ResourceNotFoundException("Order with id " + orderId + " not found");
+            throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
         log.warn("Deleting order with id {}", order.getId());
         orderRepository.delete(order);

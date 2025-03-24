@@ -77,7 +77,7 @@ public class ProductService {
         }
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " found"));
         productCache.put(id, product);
         log.info("Product with id {} retrieved from repository and cached", id);
         return product;
@@ -110,10 +110,11 @@ public class ProductService {
             }
             product.setCategory(optionalCategory.get());
         }
-
-        product = productRepository.save(product);
-        productCache.put(product.getId(), product);
-        return product;
+        log.info("Product with id {}", product.getId());
+        Product savedProduct = productRepository.save(product);
+        productCache.put(savedProduct.getId(), savedProduct);
+        log.info("Product with id {} updated and cached", savedProduct.getId());
+        return savedProduct;
     }
 
     public void deleteProduct(Long id) {

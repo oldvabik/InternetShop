@@ -12,7 +12,6 @@ import com.oldvabik.internetshop.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -23,6 +22,8 @@ public class CategoryService {
     private final CategoryMapper categoryMapper;
     private final CategoryCache categoryCache;
     private final ProductRepository productRepository;
+
+    private static final String CATEGORY_NOT_FOUND = "Category not found";
 
     public CategoryService(CategoryRepository categoryRepository,
                            CategoryMapper categoryMapper,
@@ -48,7 +49,6 @@ public class CategoryService {
 
     public List<Category> getCategories() {
         List<Category> categories = categoryRepository.findAll();
-
         if (categories.isEmpty()) {
             throw new ResourceNotFoundException("Categories not found");
         }
@@ -61,7 +61,6 @@ public class CategoryService {
                 log.info("Category with id {} already exists in cache", category.getId());
             }
         }
-
         return categories;
     }
 
@@ -73,7 +72,7 @@ public class CategoryService {
         }
 
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
         categoryCache.put(category.getId(), category);
         log.info("Category with id {} retrieved from repository", category.getId());
         return category;
@@ -81,7 +80,7 @@ public class CategoryService {
 
     public Category updateCategory(Long id, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
 
         if (categoryDto.getName() != null && !categoryDto.getName().equals(category.getName())) {
             Optional<Category> foundCategory = categoryRepository.findByName(categoryDto.getName());
@@ -90,34 +89,36 @@ public class CategoryService {
             }
             category.setName(categoryDto.getName());
         }
-        category = categoryRepository.save(category);
-        categoryCache.put(id, category);
-        return category;
+        log.info("Updating Category with id {}", category.getId());
+        Category savedCategory = categoryRepository.save(category);
+        categoryCache.put(savedCategory.getId(), savedCategory);
+        log.info("Category with id {} updated and cached", savedCategory.getId());
+        return savedCategory;
     }
 
     public void deleteCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
         log.warn("Deleting category with id {}", category.getId());
         categoryRepository.delete(category);
         categoryCache.put(id, category);
         log.info("Category with id {} deleted from cache", category.getId());
     }
 
-    public ResponseEntity<List<Product>> getProductsByCategory(Long categoryId) {
+    public List<Product> getProductsByCategory(Long categoryId) {
         List<Product> products = productRepository.findByCategoryId(categoryId);
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("Product with id " + categoryId + " not found");
         }
-        return ResponseEntity.ok(products);
+        return products;
     }
 
-    public ResponseEntity<Product> getProductById(Long categoryId, Long productId) {
+    public Product getProductById(Long categoryId, Long productId) {
         Product product = productRepository.findByIdAndCategoryId(productId, categoryId);
         if (product == null) {
             throw new ResourceNotFoundException("Product with id " + productId + " not found");
         }
-        return ResponseEntity.ok(product);
+        return product;
     }
 
 }

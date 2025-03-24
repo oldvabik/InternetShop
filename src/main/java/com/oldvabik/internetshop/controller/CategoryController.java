@@ -63,7 +63,7 @@ public class CategoryController {
             summary = "Get products by category",
             description = "Returns a list of products belonging to a specific category"
     )
-    public ResponseEntity<List<Product>> getProductsByCategory(@PathVariable Long categoryId) {
+    public List<Product> getProductsByCategory(@PathVariable Long categoryId) {
         return categoryService.getProductsByCategory(categoryId);
     }
 
@@ -72,7 +72,7 @@ public class CategoryController {
             summary = "Get product by ID within a category",
             description = "Returns a product by its ID within a specific category"
     )
-    public ResponseEntity<Product> getProductById(@PathVariable Long categoryId, @PathVariable Long productId) {
+    public Product getProductById(@PathVariable Long categoryId, @PathVariable Long productId) {
         return categoryService.getProductById(categoryId, productId);
     }
 
