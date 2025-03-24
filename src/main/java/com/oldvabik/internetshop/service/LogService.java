@@ -1,71 +1,83 @@
 package com.oldvabik.internetshop.service;
 
 import com.oldvabik.internetshop.exception.InvalidInputException;
-import com.oldvabik.internetshop.exception.LoggingException;
 import com.oldvabik.internetshop.exception.ResourceNotFoundException;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LogService {
 
-    private static final String LOGS_DIR = "log";
-    private static final DateTimeFormatter INPUT_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-    private static final DateTimeFormatter LOG_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String LOG_FILE_PATH = "log/app.log";
 
-    public Resource getLogFileForDate(String date) {
-        LocalDate parsedDate = parseDate(date);
-        String formattedDate = parsedDate.format(LOG_DATE_FORMATTER);
+    public Resource downloadLogs(String date) {
+        LocalDate logDate = parseDate(date);
 
-        Path logFilePath = Paths.get(LOGS_DIR, "app.log");
-        if (!Files.exists(logFilePath)) {
-            throw new ResourceNotFoundException("Log file does not exist.");
-        }
+        Path logFilePath = Paths.get(LOG_FILE_PATH);
+        validateLogFileExists(logFilePath);
 
-        List<String> filteredLines = new ArrayList<>();
-        try (BufferedReader reader = Files.newBufferedReader(logFilePath, StandardCharsets.UTF_8)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith(formattedDate)) {
-                    filteredLines.add(line);
-                }
-            }
-        } catch (IOException ex) {
-            throw new LoggingException("Error reading log file");
-        }
+        String formattedDate = logDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 
-        if (filteredLines.isEmpty()) {
-            throw new ResourceNotFoundException("No logs found for this date.");
-        }
+        Path tempFile = createTempFile(logDate);
+        filterAndWriteLogsToTempFile(logFilePath, formattedDate, tempFile);
 
-        String fileContent = String.join(System.lineSeparator(), filteredLines);
-        return new ByteArrayResource(fileContent.getBytes(StandardCharsets.UTF_8));
-    }
-
-
-    public String getDownloadFileName(String date) {
-        LocalDate parsedDate = parseDate(date);
-        return String.format("app-%s.log", parsedDate.format(LOG_DATE_FORMATTER));
+        return createResourceFromTempFile(tempFile, date);
     }
 
     private LocalDate parseDate(String date) {
         try {
-            return LocalDate.parse(date, INPUT_DATE_FORMATTER);
-        } catch (DateTimeParseException ex) {
-            throw new InvalidInputException("Incorrect date format. Use dd.MM.yyyy.");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            return LocalDate.parse(date, formatter);
+        } catch (DateTimeParseException e) {
+            throw new InvalidInputException("Invalid date format. Required dd-MM-yyyy");
         }
     }
 
+    private void validateLogFileExists(Path path) {
+        if (!Files.exists(path)) {
+            throw new ResourceNotFoundException("File doesn't exist: " + LOG_FILE_PATH);
+        }
+    }
+
+    private Path createTempFile(LocalDate logDate) {
+        try {
+            return Files.createTempFile("log-" + logDate, ".log");
+        } catch (IOException e) {
+            throw new IllegalStateException("Error creating temp file: " + e.getMessage());
+        }
+    }
+
+    private void filterAndWriteLogsToTempFile(Path logFilePath, String formattedDate,
+                                              Path tempFile) {
+        try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
+            Files.write(tempFile, reader.lines()
+                    .filter(line -> line.contains(formattedDate))
+                    .toList());
+        } catch (IOException e) {
+            throw new IllegalStateException("Error processing log file: " + e.getMessage());
+        }
+    }
+
+    private Resource createResourceFromTempFile(Path tempFile, String date) {
+        try {
+            if (Files.size(tempFile) == 0) {
+                throw new ResourceNotFoundException("There are no logs for specified date: " + date);
+            }
+            Resource resource = new UrlResource(tempFile.toUri());
+            tempFile.toFile().deleteOnExit();
+            return resource;
+        } catch (IOException e) {
+            throw new IllegalStateException("Error creating resource from temp file: "
+                    + e.getMessage());
+        }
+    }
 }

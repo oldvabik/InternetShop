@@ -26,11 +26,11 @@ public class LogController {
     @GetMapping("/download")
     @Operation(summary = "Get .log file", description = "Returns .log file with logs from specified date")
     public ResponseEntity<Resource> downloadLogFile(@RequestParam String date) {
-        Resource resource = logService.getLogFileForDate(date);
-        String downloadFilename = logService.getDownloadFileName(date);
+        Resource resource = logService.downloadLogs(date);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + downloadFilename + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
