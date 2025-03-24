@@ -20,7 +20,7 @@
         <appender-ref ref="FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>
-    <logger name="com.oldvabik.internetshop.aspect" level="DEBUG" additivity="false">
+    <logger name="com.oldvabik.internetshop.aspect" level="INFO" additivity="false">
         <appender-ref ref="FILE"/>
         <appender-ref ref="CONSOLE"/>
     </logger>

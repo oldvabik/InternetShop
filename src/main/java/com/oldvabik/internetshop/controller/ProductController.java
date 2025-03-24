@@ -5,6 +5,7 @@ import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class ProductController {
 
     @PostMapping
     @Operation(summary = "Create a product", description = "Creates a new product in the system")
-    public Product createProduct(@RequestBody ProductDto productDto) {
+    public Product createProduct(@Valid @RequestBody ProductDto productDto) {
         return productService.createProduct(productDto);
     }
 
@@ -46,7 +47,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a product", description = "Updates the details of an existing product")
-    public Product updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
+    public Product updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDto productDto) {
         return productService.updateProduct(id, productDto);
     }
 

@@ -7,6 +7,8 @@ import com.oldvabik.internetshop.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +31,7 @@ public class CategoryController {
 
     @PostMapping
     @Operation(summary = "Create a new category", description = "Creates a category based on the provided data")
-    public Category createCategory(@RequestBody CategoryDto categoryDto) {
+    public Category createCategory(@Valid @RequestBody CategoryDto categoryDto) {
         return categoryService.createCategory(categoryDto);
     }
 
@@ -47,7 +49,7 @@ public class CategoryController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update category details", description = "Updates category information by ID")
-    public Category updateCategory(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
+    public Category updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryDto categoryDto) {
         return categoryService.updateCategory(id, categoryDto);
     }
 

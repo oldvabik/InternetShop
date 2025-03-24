@@ -5,6 +5,7 @@ import com.oldvabik.internetshop.model.User;
 import com.oldvabik.internetshop.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "Create a new user", description = "Creates a user based on the provided data")
-    public User createUser(@RequestBody UserDto userDto) {
+    public User createUser(@Valid @RequestBody UserDto userDto) {
         return userService.createUser(userDto);
     }
 
@@ -46,7 +47,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update user details", description = "Updates user information by ID")
-    public User updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+    public User updateUser(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
         return userService.updateUser(id, userDto);
     }
 

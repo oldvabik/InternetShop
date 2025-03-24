@@ -6,6 +6,8 @@ import com.oldvabik.internetshop.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +30,7 @@ public class OrderController {
 
     @PostMapping("/users/{userId}/orders")
     @Operation(summary = "Create an order", description = "Creates a new order for a specific user")
-    public Order createOrder(@PathVariable Long userId, @RequestBody OrderDto orderDto) {
+    public Order createOrder(@PathVariable Long userId, @Valid @RequestBody OrderDto orderDto) {
         return orderService.createOrder(userId, orderDto);
     }
 
@@ -60,7 +62,7 @@ public class OrderController {
     @Operation(summary = "Update an order", description = "Updates an order's details for a specific user")
     public Order updateOrder(@PathVariable Long userId,
                                              @PathVariable Long orderId,
-                                             @RequestBody OrderDto orderDto) {
+                                             @Valid @RequestBody OrderDto orderDto) {
         return orderService.updateOrder(userId, orderId, orderDto);
     }
 
