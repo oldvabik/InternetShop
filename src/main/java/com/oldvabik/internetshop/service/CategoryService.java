@@ -101,7 +101,7 @@ public class CategoryService {
                 .orElseThrow(() -> new ResourceNotFoundException(CATEGORY_NOT_FOUND));
         log.warn("Deleting category with id {}", category.getId());
         categoryRepository.delete(category);
-        categoryCache.put(id, category);
+        categoryCache.remove(category.getId());
         log.info("Category with id {} deleted from cache", category.getId());
     }
 

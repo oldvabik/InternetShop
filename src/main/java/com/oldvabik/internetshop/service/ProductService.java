@@ -122,7 +122,7 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         log.warn("Deleting product with id {}", product.getId());
         productRepository.delete(product);
-        productCache.put(product.getId(), product);
+        productCache.remove(product.getId());
         log.info("Product with id {} deleted from cache", product.getId());
     }
 
