@@ -35,6 +35,12 @@ public class CategoryController {
         return categoryService.createCategory(categoryDto);
     }
 
+    @PostMapping("/bulk")
+    @Operation(summary = "Create a new categories", description = "Creates a categories based on the provided data")
+    public List<Category> createCategories(@Valid @RequestBody List<CategoryDto> categoryDtos) {
+        return categoryService.createCategories(categoryDtos);
+    }
+
     @GetMapping
     @Operation(summary = "Get all categories", description = "Returns a list of all categories")
     public List<Category> getCategories() {

@@ -10,7 +10,9 @@ import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.repository.CategoryRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,35 @@ public class CategoryService {
         categoryCache.put(savedCategory.getId(), savedCategory);
         log.info("Category with id {} created and cached", savedCategory.getId());
         return savedCategory;
+    }
+
+    public List<Category> createCategories(List<CategoryDto> categoryDtos) {
+        List<String> duplicateNamesInRequest = categoryDtos.stream()
+                .collect(Collectors.groupingBy(CategoryDto::getName, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .toList();
+        if (!duplicateNamesInRequest.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "В запросе присутствуют повторяющиеся имена категорий: " + duplicateNamesInRequest
+            );
+        }
+
+        List<String> duplicateNamesInDb = categoryDtos.stream()
+                .map(CategoryDto::getName)
+                .filter(categoryRepository::existsByName)
+                .toList();
+        if (!duplicateNamesInDb.isEmpty()) {
+            throw new IllegalArgumentException("Категории с именами " + duplicateNamesInDb + " уже существуют");
+        }
+
+        List<Category> categories = categoryDtos.stream()
+                .map(categoryMapper::toEntity)
+                .toList();
+
+        log.info("Creating new categories: {}", categories.size());
+        return categoryRepository.saveAll(categories);
     }
 
     public List<Category> getCategories() {
@@ -110,6 +141,7 @@ public class CategoryService {
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("Product with id " + categoryId + " not found");
         }
+        log.info("Found {} products", products.size());
         return products;
     }
 
@@ -118,6 +150,7 @@ public class CategoryService {
         if (product == null) {
             throw new ResourceNotFoundException("Product with id " + productId + " not found");
         }
+        log.info("Found product with id {}", productId);
         return product;
     }
 

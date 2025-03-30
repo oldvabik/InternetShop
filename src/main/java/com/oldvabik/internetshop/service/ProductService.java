@@ -10,7 +10,9 @@ import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.repository.CategoryRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +52,36 @@ public class ProductService {
         productCache.put(savedProduct.getId(), savedProduct);
         log.info("Product with id {} created and cached", savedProduct.getId());
         return savedProduct;
+    }
+
+    public List<Product> createProducts(List<ProductDto> productDtos) {
+        List<String> duplicateNamesInRequest = productDtos.stream()
+                .collect(Collectors.groupingBy(ProductDto::getName, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .toList();
+        if (!duplicateNamesInRequest.isEmpty()) {
+            throw new IllegalArgumentException("В запросе присутствуют повторяющиеся имена продуктов: " + duplicateNamesInRequest);
+        }
+
+        List<String> duplicateNamesInDb = productDtos.stream()
+                .map(ProductDto::getName)
+                .filter(productRepository::existsByName)
+                .toList();
+        if (!duplicateNamesInDb.isEmpty()) {
+            throw new AlreadyExistsException("Продукты с именами " + duplicateNamesInDb + " уже существуют");
+        }
+
+        List<Product> products = productDtos.stream()
+                .map(productDto -> {
+                    Category category = categoryRepository.findByName(productDto.getCategoryName())
+                            .orElseThrow(() -> new ResourceNotFoundException("Категория не найдена: " + productDto.getCategoryName()));
+                    return productMapper.toEntity(productDto, category);
+                })
+                .toList();
+
+        return productRepository.saveAll(products);
     }
 
     public List<Product> getProducts() {
@@ -104,8 +136,8 @@ public class ProductService {
                 || !productDto.getCategoryName().equals(product.getCategory().getName()))) {
             Optional<Category> optionalCategory = categoryRepository.findByName(productDto.getCategoryName());
             if (optionalCategory.isEmpty()) {
-                throw new IllegalStateException(
-                        String.format("Category with name %s does not exist", productDto.getCategoryName())
+                throw new ResourceNotFoundException(
+                        "Category with name " + productDto.getCategoryName() + " does not exist"
                 );
             }
             product.setCategory(optionalCategory.get());

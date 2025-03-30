@@ -15,10 +15,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
 @Data
 @Entity
+@ToString(exclude = "category")
 @Table(name = "products")
 public class Product {
 

@@ -7,13 +7,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class LogService {
 
@@ -30,7 +36,9 @@ public class LogService {
         Path tempFile = createTempFile(logDate);
         filterAndWriteLogsToTempFile(logFilePath, formattedDate, tempFile);
 
-        return createResourceFromTempFile(tempFile, date);
+        Resource resource = createResourceFromTempFile(tempFile, date);
+        log.info("Log file with date {} downloaded successfully", date);
+        return resource;
     }
 
     private LocalDate parseDate(String date) {
@@ -50,7 +58,15 @@ public class LogService {
 
     private Path createTempFile(LocalDate logDate) {
         try {
-            return Files.createTempFile("log-" + logDate, ".log");
+            Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+
+            if (Files.getFileStore(tempDir).supportsFileAttributeView("posix")) {
+                Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
+                FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
+                return Files.createTempFile("log-" + logDate, ".log", attr);
+            } else {
+                return Files.createTempFile("log-" + logDate, ".log");
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Error creating temp file: " + e.getMessage());
         }

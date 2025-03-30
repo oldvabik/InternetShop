@@ -19,4 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(value = "SELECT * FROM products WHERE id = :id AND category_id = :categoryId", nativeQuery = true)
     Product findByIdAndCategoryId(Long id, Long categoryId);
 
+    boolean existsByName(String name);
+
 }
