@@ -49,8 +49,8 @@ public class CategoryService {
         return savedCategory;
     }
 
-    public List<Category> createCategories(List<CategoryDto> categoryDtos) {
-        List<String> duplicateNamesInRequest = categoryDtos.stream()
+    public List<Category> createCategories(List<CategoryDto> categoriesDto) {
+        List<String> duplicateNamesInRequest = categoriesDto.stream()
                 .collect(Collectors.groupingBy(CategoryDto::getName, Collectors.counting()))
                 .entrySet().stream()
                 .filter(entry -> entry.getValue() > 1)
@@ -62,7 +62,7 @@ public class CategoryService {
             );
         }
 
-        List<String> duplicateNamesInDb = categoryDtos.stream()
+        List<String> duplicateNamesInDb = categoriesDto.stream()
                 .map(CategoryDto::getName)
                 .filter(categoryRepository::existsByName)
                 .toList();
@@ -70,7 +70,7 @@ public class CategoryService {
             throw new IllegalArgumentException("Категории с именами " + duplicateNamesInDb + " уже существуют");
         }
 
-        List<Category> categories = categoryDtos.stream()
+        List<Category> categories = categoriesDto.stream()
                 .map(categoryMapper::toEntity)
                 .toList();
 

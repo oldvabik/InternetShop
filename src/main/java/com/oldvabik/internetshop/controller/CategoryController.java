@@ -6,9 +6,8 @@ import com.oldvabik.internetshop.model.Product;
 import com.oldvabik.internetshop.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
-
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,8 +36,8 @@ public class CategoryController {
 
     @PostMapping("/bulk")
     @Operation(summary = "Create a new categories", description = "Creates a categories based on the provided data")
-    public List<Category> createCategories(@Valid @RequestBody List<CategoryDto> categoryDtos) {
-        return categoryService.createCategories(categoryDtos);
+    public List<Category> createCategories(@Valid @RequestBody List<CategoryDto> categoriesDto) {
+        return categoryService.createCategories(categoriesDto);
     }
 
     @GetMapping

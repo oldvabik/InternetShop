@@ -35,8 +35,8 @@ public class ProductController {
 
     @PostMapping("/bulk")
     @Operation(summary = "Create a products", description = "Creates a new products in the system")
-    public List<Product> createProducts(@Valid @RequestBody List<ProductDto> productDtos) {
-        return productService.createProducts(productDtos);
+    public List<Product> createProducts(@Valid @RequestBody List<ProductDto> productsDto) {
+        return productService.createProducts(productsDto);
     }
 
     @GetMapping

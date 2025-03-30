@@ -54,18 +54,20 @@ public class ProductService {
         return savedProduct;
     }
 
-    public List<Product> createProducts(List<ProductDto> productDtos) {
-        List<String> duplicateNamesInRequest = productDtos.stream()
+    public List<Product> createProducts(List<ProductDto> productsDto) {
+        List<String> duplicateNamesInRequest = productsDto.stream()
                 .collect(Collectors.groupingBy(ProductDto::getName, Collectors.counting()))
                 .entrySet().stream()
                 .filter(entry -> entry.getValue() > 1)
                 .map(Map.Entry::getKey)
                 .toList();
         if (!duplicateNamesInRequest.isEmpty()) {
-            throw new IllegalArgumentException("В запросе присутствуют повторяющиеся имена продуктов: " + duplicateNamesInRequest);
+            throw new IllegalArgumentException(
+                    "В запросе присутствуют повторяющиеся имена продуктов: " + duplicateNamesInRequest
+            );
         }
 
-        List<String> duplicateNamesInDb = productDtos.stream()
+        List<String> duplicateNamesInDb = productsDto.stream()
                 .map(ProductDto::getName)
                 .filter(productRepository::existsByName)
                 .toList();
@@ -73,10 +75,12 @@ public class ProductService {
             throw new AlreadyExistsException("Продукты с именами " + duplicateNamesInDb + " уже существуют");
         }
 
-        List<Product> products = productDtos.stream()
+        List<Product> products = productsDto.stream()
                 .map(productDto -> {
                     Category category = categoryRepository.findByName(productDto.getCategoryName())
-                            .orElseThrow(() -> new ResourceNotFoundException("Категория не найдена: " + productDto.getCategoryName()));
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Категория не найдена: " + productDto.getCategoryName())
+                            );
                     return productMapper.toEntity(productDto, category);
                 })
                 .toList();
