@@ -162,7 +162,6 @@ class UserServiceTest {
         Mockito.when(userCache.get(userId)).thenReturn(null);
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         ResourceNotFoundException exception = Assertions.assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
         Assertions.assertTrue(exception.getMessage().contains("User not found"));
     }
@@ -190,15 +189,11 @@ class UserServiceTest {
         updatedUser.setAge(30);
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        // При обновлении email, если такой email отсутствует
         Mockito.when(userRepository.findByEmail(updateDto.getEmail())).thenReturn(Optional.empty());
-        // Возвращаем обновленного пользователя при сохранении
         Mockito.when(userRepository.save(existingUser)).thenReturn(updatedUser);
 
-        // Act
         User result = userService.updateUser(1L, updateDto);
 
-        // Assert
         Assertions.assertEquals("Alicia", result.getFirstName());
         Assertions.assertEquals("Smithers", result.getLastName());
         Assertions.assertEquals("alice.new@example.com", result.getEmail());

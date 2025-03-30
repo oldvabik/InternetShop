@@ -3,6 +3,7 @@ package com.oldvabik.internetshop.service;
 import com.oldvabik.internetshop.exception.InvalidInputException;
 import com.oldvabik.internetshop.exception.ResourceNotFoundException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,13 +25,23 @@ import org.springframework.stereotype.Service;
 public class LogService {
 
     private static final String LOG_FILE_PATH = "log/app.log";
+    private static final Path SECURE_TEMP_DIR = Paths.get("D:/JavaProjects/log"); // Задайте безопасную директорию
+
+    static {
+        try {
+            if (!Files.exists(SECURE_TEMP_DIR)) {
+                Files.createDirectories(SECURE_TEMP_DIR);
+                log.info("Created secure temporary directory: {}", SECURE_TEMP_DIR);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot create secure temp directory", e);
+        }
+    }
 
     public Resource downloadLogs(String date) {
         LocalDate logDate = parseDate(date);
-
         Path logFilePath = Paths.get(LOG_FILE_PATH);
         validateLogFileExists(logFilePath);
-
         String formattedDate = logDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 
         Path tempFile = createTempFile(logDate);
@@ -58,26 +69,37 @@ public class LogService {
 
     private Path createTempFile(LocalDate logDate) {
         try {
-            Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-
-            if (Files.getFileStore(tempDir).supportsFileAttributeView("posix")) {
-                Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
-                FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(perms);
-                return Files.createTempFile("log-" + logDate, ".log", attr);
+            if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                File tempFile = Files.createTempFile(SECURE_TEMP_DIR, "log-" + logDate + "-", ".log").toFile();
+                if (!tempFile.setReadable(true, true)) {
+                    throw new IllegalStateException("Failed to set readable permission on temp file: " + tempFile);
+                }
+                if (!tempFile.setWritable(true, true)) {
+                    throw new IllegalStateException("Failed to set writable permission on temp file: " + tempFile);
+                }
+                if (tempFile.canExecute() && !tempFile.setExecutable(false, false)) {
+                    log.warn("Failed to remove executable permission on temp file: {}", tempFile);
+                }
+                log.info("Created secure temp file on Windows: {}", tempFile.getAbsolutePath());
+                return tempFile.toPath();
             } else {
-                return Files.createTempFile("log-" + logDate, ".log");
+                FileAttribute<Set<PosixFilePermission>> attr =
+                        PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
+                Path tempFile = Files.createTempFile(SECURE_TEMP_DIR, "log-" + logDate + "-", ".log", attr);
+                log.info("Created secure temp file on Unix/Linux: {}", tempFile.toAbsolutePath());
+                return tempFile;
             }
         } catch (IOException e) {
             throw new IllegalStateException("Error creating temp file: " + e.getMessage());
         }
     }
 
-    private void filterAndWriteLogsToTempFile(Path logFilePath, String formattedDate,
-                                              Path tempFile) {
+    private void filterAndWriteLogsToTempFile(Path logFilePath, String formattedDate, Path tempFile) {
         try (BufferedReader reader = Files.newBufferedReader(logFilePath)) {
             Files.write(tempFile, reader.lines()
                     .filter(line -> line.contains(formattedDate))
                     .toList());
+            log.info("Filtered logs for date {} written to temp file {}", formattedDate, tempFile);
         } catch (IOException e) {
             throw new IllegalStateException("Error processing log file: " + e.getMessage());
         }
@@ -90,10 +112,11 @@ public class LogService {
             }
             Resource resource = new UrlResource(tempFile.toUri());
             tempFile.toFile().deleteOnExit();
+            log.info("Created downloadable resource from temp file: {}", tempFile);
             return resource;
         } catch (IOException e) {
-            throw new IllegalStateException("Error creating resource from temp file: "
-                    + e.getMessage());
+            throw new IllegalStateException("Error creating resource from temp file: " + e.getMessage());
         }
     }
+
 }
