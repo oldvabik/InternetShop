@@ -14,7 +14,11 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -25,7 +29,10 @@ import org.springframework.stereotype.Service;
 public class LogService {
 
     private static final String LOG_FILE_PATH = "log/app.log";
-    private static final Path SECURE_TEMP_DIR = Paths.get("D:/JavaProjects/log"); // Задайте безопасную директорию
+    private static final Path SECURE_TEMP_DIR = Paths.get("D:/JavaProjects/InternetShop/log");
+
+    private final Map<String, String> logFileStatus = new ConcurrentHashMap<>();
+    private final Map<String, Path> logFilePaths = new ConcurrentHashMap<>();
 
     static {
         try {
@@ -35,6 +42,48 @@ public class LogService {
             }
         } catch (IOException e) {
             throw new IllegalStateException("Cannot create secure temp directory", e);
+        }
+    }
+
+    public String createLogFileAsync(String date) {
+        String id = UUID.randomUUID().toString();
+        logFileStatus.put(id, "IN_PROGRESS");
+        CompletableFuture.runAsync(() -> generateLogFile(id, date));
+        return id;
+    }
+
+    private void generateLogFile(String id, String date) {
+        try {
+            LocalDate logDate = parseDate(date);
+            Path logFilePath = Paths.get(LOG_FILE_PATH);
+            validateLogFileExists(logFilePath);
+            String formattedDate = logDate.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+
+            Path tempFile = createTempFile(logDate);
+            filterAndWriteLogsToTempFile(logFilePath, formattedDate, tempFile);
+
+            logFilePaths.put(id, tempFile);
+            logFileStatus.put(id, "COMPLETED");
+            log.info("Log file with ID {} successfully created", id);
+        } catch (Exception e) {
+            logFileStatus.put(id, "FAILED");
+            log.error("Error creating log file with ID {}: {}", id, e.getMessage());
+        }
+    }
+
+    public String getLogFileStatus(String id) {
+        return logFileStatus.getOrDefault(id, "NOT_FOUND");
+    }
+
+    public Resource getLogFileById(String id) {
+        Path filePath = logFilePaths.get(id);
+        if (filePath == null || !"COMPLETED".equals(logFileStatus.get(id))) {
+            return null;
+        }
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (IOException e) {
+            throw new IllegalStateException("Error accessing log file: " + e.getMessage());
         }
     }
 
