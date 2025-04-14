@@ -1,21 +1,19 @@
 package com.oldvabik.internetshop.service;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
 
 @Service
 public class VisitCounterService {
 
-    private final ConcurrentHashMap<String, AtomicInteger> visitCounts = new ConcurrentHashMap<>();
+    private final AtomicLong counter = new AtomicLong(0);
 
-    public void increment(String url) {
-        visitCounts.computeIfAbsent(url, key -> new AtomicInteger(0))
-                .incrementAndGet();
+    public void increment() {
+        counter.incrementAndGet();
     }
 
-    public int getCount(String url) {
-        return visitCounts.getOrDefault(url, new AtomicInteger(0)).get();
+    public Long getCounter() {
+        return counter.get();
     }
 
 }

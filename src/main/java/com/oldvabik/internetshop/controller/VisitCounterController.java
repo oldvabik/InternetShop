@@ -4,7 +4,6 @@ import com.oldvabik.internetshop.service.VisitCounterService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,17 +15,16 @@ public class VisitCounterController {
     public VisitCounterController(VisitCounterService visitCounterService) {
         this.visitCounterService = visitCounterService;
     }
-
+    
     @GetMapping("/increment")
-    public ResponseEntity<String> incrementVisit(@RequestParam String url) {
-        visitCounterService.increment(url);
-        String res = "Посещение увеличено";
-        return ResponseEntity.ok(res);
+    public ResponseEntity<String> incrementVisit() {
+        visitCounterService.increment();
+        return ResponseEntity.ok("Посещение увеличено");
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Integer> getCount(@RequestParam String url) {
-        int count = visitCounterService.getCount(url);
+    public ResponseEntity<Long> getCount() {
+        Long count = visitCounterService.getCounter();
         return ResponseEntity.ok(count);
     }
 }

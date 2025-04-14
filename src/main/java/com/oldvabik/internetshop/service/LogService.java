@@ -39,7 +39,7 @@ public class LogService {
         this.self = self;
     }
 
-    @Async("taskExecutor")
+    @Async("executor")
     public void createLogs(Long taskId, String date) {
         try {
             Thread.sleep(5000);
@@ -55,10 +55,10 @@ public class LogService {
                     .toList();
 
             if (currentLogs.isEmpty()) {
-                LogObject task = tasks.get(taskId);
-                if (task != null) {
-                    task.setStatus("FAILED");
-                    task.setErrorMessage("Нет логов за дату: " + date);
+                LogObject logObject = tasks.get(taskId);
+                if (logObject != null) {
+                    logObject.setStatus("FAILED");
+                    logObject.setErrorMessage("Нет логов за дату: " + date);
                 }
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Нет логов за дату: " + date);
             }
@@ -93,8 +93,8 @@ public class LogService {
 
     public Long createLogAsync(String date) {
         Long id = idCounter.getAndIncrement();
-        LogObject task = new LogObject(id, "IN_PROGRESS");
-        tasks.put(id, task);
+        LogObject logObject = new LogObject(id, "IN_PROGRESS");
+        tasks.put(id, logObject);
         self.createLogs(id, date);
         return id;
     }
@@ -104,15 +104,15 @@ public class LogService {
     }
 
     public ResponseEntity<Resource> downloadCreatedLogs(Long taskId) throws IOException {
-        LogObject task = getStatus(taskId);
-        if (task == null) {
+        LogObject logObject = getStatus(taskId);
+        if (logObject == null) {
             throw new ResourceNotFoundException("Not found log file");
         }
-        if (!"COMPLETED".equals(task.getStatus())) {
+        if (!"COMPLETED".equals(logObject.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The logs are not ready yet");
         }
 
-        Path path = Paths.get(task.getFilePath());
+        Path path = Paths.get(logObject.getFilePath());
         Resource resource = new UrlResource(path.toUri());
 
         return ResponseEntity.ok()
