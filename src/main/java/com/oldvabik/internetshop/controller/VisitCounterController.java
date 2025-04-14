@@ -1,6 +1,7 @@
 package com.oldvabik.internetshop.controller;
 
 import com.oldvabik.internetshop.service.VisitCounterService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,14 +18,15 @@ public class VisitCounterController {
     }
 
     @GetMapping("/increment")
-    public String incrementVisit(@RequestParam String url) {
+    public ResponseEntity<String> incrementVisit(@RequestParam String url) {
         visitCounterService.increment(url);
-        return "Посещение для URL '" + url + "' увеличено";
+        String res = "Посещение увеличено";
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/count")
-    public String getCount(@RequestParam String url) {
+    public ResponseEntity<Integer> getCount(@RequestParam String url) {
         int count = visitCounterService.getCount(url);
-        return "Посещение для URL '" + url + "': " + count;
+        return ResponseEntity.ok(count);
     }
 }
