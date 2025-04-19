@@ -32,7 +32,7 @@ public class LogService {
 
     private final AtomicLong idCounter = new AtomicLong(1);
     private final Map<Long, LogObject> tasks = new ConcurrentHashMap<>();
-    private static final String LOG_FILE_PATH = "log/app.log";
+    private static final String LOG_FILE_PATH = "logs/app.log";
     private final LogService self;
 
     public LogService(@Lazy LogService self) {

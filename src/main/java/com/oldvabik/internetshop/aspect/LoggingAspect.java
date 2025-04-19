@@ -15,24 +15,31 @@ public class LoggingAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @Before("execution(* com.oldvabik.internetshop..*(..))")
+    @Before(
+            "execution(* com.oldvabik.internetshop..*(..))"
+    )
     public void logBefore(JoinPoint joinPoint) {
-        if (logger.isDebugEnabled()) {
-            logger.info("Executing: {}", joinPoint.getSignature().toShortString());
+        if (logger.isInfoEnabled()) {
+            logger.info("CALL: {}", joinPoint.getSignature().toShortString());
         }
     }
 
-    @AfterReturning(pointcut = "execution(* com.oldvabik.internetshop..*(..))", returning = "result")
+    @AfterReturning(
+            pointcut = "execution(* com.oldvabik.internetshop..*(..))", returning = "result"
+    )
     public void logAfterReturning(JoinPoint joinPoint, Object result) {
-        if (logger.isDebugEnabled()) {
-            logger.info("Executing: {} with result: {}", joinPoint.getSignature().toShortString(), result);
+        if (logger.isInfoEnabled()) {
+            logger.info("EXECUTED: {} RETURNED: {}",
+                    joinPoint.getSignature().toShortString(), result);
         }
     }
 
-    @AfterThrowing(pointcut = "execution(* com.oldvabik.internetshop..*(..))", throwing = "error")
+    @AfterThrowing(
+            pointcut = "execution(* com.oldvabik.internetshop..*(..))", throwing = "error"
+    )
     public void logAfterThrowing(JoinPoint joinPoint, Throwable error) {
-        if (logger.isDebugEnabled()) {
-            logger.error("Exception in: {} with cause: {}",
+        if (logger.isErrorEnabled()) {
+            logger.error("OCCURRED: {} REASON: {}",
                     joinPoint.getSignature().toShortString(), error.getMessage());
         }
     }
