@@ -8,8 +8,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Objects;
@@ -34,13 +34,16 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
+    @Column(nullable = false)
+    private Integer quantity;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     @JsonBackReference
-    @ManyToMany(mappedBy = "products", fetch = FetchType.LAZY)
-    private Set<Order> orders = new HashSet<>();
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private Set<OrderProduct> orderProducts = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

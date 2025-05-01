@@ -12,6 +12,7 @@ public class ProductMapper {
         ProductDto productDto = new ProductDto();
         productDto.setName(product.getName());
         productDto.setPrice(product.getPrice());
+        productDto.setQuantity(product.getQuantity());
         productDto.setCategoryName(product.getCategory().getName());
         return productDto;
     }
@@ -20,6 +21,7 @@ public class ProductMapper {
         Product product = new Product();
         product.setName(productDto.getName());
         product.setPrice(productDto.getPrice());
+        product.setQuantity(productDto.getQuantity());
         if (productDto.getCategoryName() != null) {
             product.setCategory(category);
         }

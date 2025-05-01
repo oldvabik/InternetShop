@@ -10,6 +10,11 @@ import lombok.Data;
 public class OrderDto {
     @NotNull
     @Size(min = 1, max = 10)
-    private List<String> productNames = new ArrayList<>();
+    private List<OrderProductRequest> items = new ArrayList<>();
 
+    @Data
+    public static class OrderProductRequest {
+        private String productName;
+        private Integer quantity;
+    }
 }

@@ -3,17 +3,16 @@ package com.oldvabik.internetshop.service;
 import com.oldvabik.internetshop.cache.OrderCache;
 import com.oldvabik.internetshop.dto.OrderDto;
 import com.oldvabik.internetshop.exception.ResourceNotFoundException;
-import com.oldvabik.internetshop.model.Order;
-import com.oldvabik.internetshop.model.Product;
-import com.oldvabik.internetshop.model.User;
+import com.oldvabik.internetshop.model.*;
+import com.oldvabik.internetshop.repository.OrderProductRepository;
 import com.oldvabik.internetshop.repository.OrderRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import com.oldvabik.internetshop.repository.UserRepository;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -25,17 +24,20 @@ public class OrderService {
     private final OrderCache orderCache;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final OrderProductRepository orderProductRepository;
 
     private static final String ORDER_NOT_FOUND = "Order not found";
 
     public OrderService(OrderRepository orderRepository,
                         OrderCache orderCache,
                         UserRepository userRepository,
-                        ProductRepository productRepository) {
+                        ProductRepository productRepository,
+                        OrderProductRepository orderProductRepository) {
         this.orderRepository = orderRepository;
         this.orderCache = orderCache;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
+        this.orderProductRepository = orderProductRepository;
     }
 
     public Order createOrder(Long id, OrderDto orderDto) {
@@ -43,26 +45,45 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = new Order();
-        Set<Product> products = new HashSet<>();
-        Double totalPrice = 0.0;
-
-        for (String productName : orderDto.getProductNames()) {
-            Product product = productRepository.findByName(productName)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-            products.add(product);
-            totalPrice += product.getPrice();
-        }
-
-        order.setProducts(products);
-        order.setTotalPrice(totalPrice);
         order.setUser(user);
         order.setDate(LocalDate.now());
+        order.setTotalPrice(0.0);
+        Order savedOrder = orderRepository.save(order);
+
+        Double totalPrice = 0.0;
+        Set<OrderProduct> orderProducts = new HashSet<>();
+
+        for (OrderDto.OrderProductRequest item : orderDto.getItems()) {
+            Product product = productRepository.findByName(item.getProductName())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+
+            if (product.getQuantity() < item.getQuantity()) {
+                throw new ResourceNotFoundException("Not enough stock for product: " + product.getName());
+            }
+
+            product.setQuantity(product.getQuantity() - item.getQuantity());
+            productRepository.save(product);
+
+            OrderProduct orderProduct = new OrderProduct();
+            orderProduct.setId(new OrderProductId(savedOrder.getId(), product.getId()));
+            orderProduct.setOrder(savedOrder);
+            orderProduct.setProduct(product);
+            orderProduct.setQuantity(item.getQuantity());
+
+            orderProductRepository.save(orderProduct);
+            orderProducts.add(orderProduct);
+
+            totalPrice += product.getPrice() * item.getQuantity();
+        }
+
+        savedOrder.setTotalPrice(totalPrice);
+        savedOrder.setOrderProducts(orderProducts);
 
         log.info("Creating order with user id {}", order.getUser().getId());
-        Order savedOrder = orderRepository.save(order);
-        orderCache.put(savedOrder.getId(), savedOrder);
+        Order finalOrder = orderRepository.save(savedOrder);
+        orderCache.put(finalOrder.getId(), finalOrder);
         log.info("Order with id {} created and cached", savedOrder.getId());
-        return savedOrder;
+        return finalOrder;
     }
 
     public List<Order> getAllOrders() {
@@ -118,29 +139,50 @@ public class OrderService {
         return order;
     }
 
+    @Transactional
     public Order updateOrder(Long userId, Long orderId, OrderDto orderDto) {
         Order order = orderRepository.findByUserIdAndId(userId, orderId);
         if (order == null) {
             throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
-        order.getProducts().clear();
 
-        Set<Product> products = new HashSet<>();
-        Double totalPrice = 0.0;
-
-        for (int i = 0; i < orderDto.getProductNames().size(); i++) {
-            Optional<Product> optionalProduct = productRepository.findByName(orderDto.getProductNames().get(i));
-            if (optionalProduct.isEmpty()) {
-                throw new ResourceNotFoundException(
-                        "Product with name " + orderDto.getProductNames().get(i) + " not found"
-                );
-            }
-            Product product = optionalProduct.get();
-            products.add(product);
-            totalPrice += product.getPrice();
+        for (OrderProduct op : order.getOrderProducts()) {
+            Product product = op.getProduct();
+            product.setQuantity(product.getQuantity() + op.getQuantity());
+            productRepository.save(product);
         }
 
-        order.setProducts(products);
+        orderProductRepository.deleteAllByOrderId(orderId);
+        order.getOrderProducts().clear();
+
+        Double totalPrice = 0.0;
+        Set<OrderProduct> orderProducts = new HashSet<>();
+
+        for (OrderDto.OrderProductRequest item : orderDto.getItems()) {
+            Product product = productRepository.findByName(item.getProductName())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Product with name " + item.getProductName() + " not found"));
+
+            if (product.getQuantity() < item.getQuantity()) {
+                throw new ResourceNotFoundException("Not enough stock for product: " + product.getName());
+            }
+
+            product.setQuantity(product.getQuantity() - item.getQuantity());
+            productRepository.save(product);
+
+            OrderProduct orderProduct = new OrderProduct();
+            orderProduct.setId(new OrderProductId(orderId, product.getId()));
+            orderProduct.setOrder(order);
+            orderProduct.setProduct(product);
+            orderProduct.setQuantity(item.getQuantity());
+
+            orderProductRepository.save(orderProduct);
+            orderProducts.add(orderProduct);
+
+            totalPrice += product.getPrice() * item.getQuantity();
+        }
+
+        order.setOrderProducts(orderProducts);
         order.setTotalPrice(totalPrice);
 
         log.info("Update order with id {}", order.getId());
@@ -150,12 +192,14 @@ public class OrderService {
         return savedOrder;
     }
 
+    @Transactional
     public void deleteUserOrderById(Long userId, Long orderId) {
         Order order = orderRepository.findByUserIdAndId(userId, orderId);
         if (order == null) {
             throw new ResourceNotFoundException(ORDER_NOT_FOUND);
         }
         log.warn("Deleting order with id {}", order.getId());
+        orderProductRepository.deleteAllByOrderId(orderId);
         orderRepository.delete(order);
         orderCache.remove(order.getId());
         log.info("Order with id {} deleted from cache", order.getId());

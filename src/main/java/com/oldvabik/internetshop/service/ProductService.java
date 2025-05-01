@@ -135,6 +135,10 @@ public class ProductService {
             product.setPrice(productDto.getPrice());
         }
 
+        if (productDto.getQuantity() != null && !productDto.getQuantity().equals(product.getQuantity())) {
+            product.setQuantity(productDto.getQuantity());
+        }
+
         if (productDto.getCategoryName() != null
                 && (product.getCategory() == null
                 || !productDto.getCategoryName().equals(product.getCategory().getName()))) {

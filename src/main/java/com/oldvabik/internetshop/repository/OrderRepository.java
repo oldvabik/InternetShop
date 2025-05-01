@@ -8,31 +8,16 @@ import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    // SELECT o.*, p.* FROM orders o
-    // LEFT JOIN order_product op ON o.id = op.order_id
-    // LEFT JOIN products p ON op.product_id = p.id
-    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products")
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product")
     List<Order> findAllWithProducts();
 
-    // SELECT o.*, p.* FROM orders o
-    // LEFT JOIN order_product op ON o.id = op.order_id
-    // LEFT JOIN products p ON op.product_id = p.id
-    // WHERE o.id = :id
-    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products WHERE o.id = :id")
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.id = :id")
     Order findWithProductsById(@Param("id") Long id);
 
-    // SELECT o.*, p.* FROM orders o
-    // LEFT JOIN order_product op ON o.id = op.order_id
-    // LEFT JOIN products p ON op.product_id = p.id
-    // WHERE o.user_id = :userId (native query)
-    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products WHERE o.user.id = :userId")
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.user.id = :userId")
     List<Order> findWithProductsByUserId(@Param("userId") Long userId);
 
-    // SELECT o.*, p.* FROM orders o
-    // LEFT JOIN order_product op ON o.id = op.order_id
-    // LEFT JOIN products p ON op.product_id = p.id
-    // WHERE o.id = :id AND o.user_id = :userId (native query)
-    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.products WHERE o.id = :id AND o.user.id = :userId")
+    @Query("SELECT o FROM Order o LEFT JOIN FETCH o.orderProducts op LEFT JOIN FETCH op.product WHERE o.id = :id AND o.user.id = :userId")
     Order findWithProductsByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
     Order findByUserIdAndId(Long userId, Long orderId);

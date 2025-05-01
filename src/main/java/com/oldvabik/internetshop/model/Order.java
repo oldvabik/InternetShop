@@ -2,17 +2,16 @@ package com.oldvabik.internetshop.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Objects;
@@ -43,14 +42,9 @@ public class Order {
     private User user;
 
     @JsonManagedReference
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "order_product",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     @ToString.Exclude
-    private Set<Product> products = new HashSet<>();
+    private Set<OrderProduct> orderProducts = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
