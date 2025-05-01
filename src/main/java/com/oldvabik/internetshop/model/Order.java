@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
 @Data
@@ -38,6 +39,7 @@ public class Order {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private User user;
 
     @JsonManagedReference
@@ -47,6 +49,7 @@ public class Order {
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
+    @ToString.Exclude
     private Set<Product> products = new HashSet<>();
 
     @Override
