@@ -49,11 +49,6 @@ const OrdersPage: React.FC = () => {
     setIsModalVisible(true);
   };
 
-  const handleEdit = (order: Order) => {
-    setEditingOrder(order);
-    setIsModalVisible(true);
-  };
-
   const handleDelete = async (userId: number, orderId: number) => {
     try {
       await deleteOrder(userId, orderId);
@@ -98,30 +93,22 @@ const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Content style={{ padding: '24px', maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1400, margin: '0 auto' }}>
+      <Content style={{ padding: '16px 0', flex: 1 }}>
         <Card 
-          title={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text strong style={{ fontSize: 18 }}>Управление заказами</Text>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={handleAdd}
-              >
-                Новый заказ
-              </Button>
-            </div>
+          title="Управление заказами"
+          extra={
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+              Новый заказ
+            </Button>
           }
           bordered={false}
           loading={loading}
         >
           <OrderTable 
-            data={orders} 
-            onEdit={handleEdit}
+            data={orders}
             onDelete={handleDelete}
             onViewProducts={handleViewProducts}
-            loading={loading}
           />
         </Card>
 
@@ -191,8 +178,9 @@ const OrdersPage: React.FC = () => {
           form={form}
         />
       </Content>
-      <Footer style={{
-        textAlign: 'center',
+      
+      <Footer style={{ 
+        textAlign: 'center', 
         padding: '16px 0',
         flex: '0 0 auto'
       }}>

@@ -76,7 +76,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
         <Form.List name="products">
           {(fields, { add, remove }) => (
             <>
-              <div style={{ marginBottom: 8, fontWeight: 'bold' }}>
+              <div style={{ marginBottom: 8, fontWeight: 'bold', textAlign: 'center' }}>
                 Товары в заказе:
               </div>
               <Table
@@ -84,6 +84,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 pagination={false}
                 rowKey="key"
                 scroll={{ y: 240 }}
+                bordered
                 footer={() => (
                   <Button
                     type="dashed"
@@ -97,13 +98,18 @@ const OrderModal: React.FC<OrderModalProps> = ({
               >
                 <Table.Column
                   title="Товар"
-                  width="60%"
+                  width="55%"
+                  align="center"
                   render={(_, __, index) => (
                     <Form.Item
                       name={[index, 'productId']}
                       rules={[{ required: true, message: 'Выберите товар!' }]}
+                      style={{ marginBottom: 0, textAlign: 'center' }}
                     >
-                      <Select placeholder="Выберите товар">
+                      <Select 
+                        placeholder="Выберите товар"
+                        style={{ width: '100%' }}
+                      >
                         {products.map(product => (
                           <Select.Option key={product.id} value={product.id}>
                             {`${product.name} - ${product.price?.toFixed(2)} BYN`}
@@ -115,7 +121,8 @@ const OrderModal: React.FC<OrderModalProps> = ({
                 />
                 <Table.Column
                   title="Кол-во"
-                  width="20%"
+                  width="25%"
+                  align="center"
                   render={(_, __, index) => (
                     <Form.Item
                       name={[index, 'quantity']}
@@ -123,21 +130,27 @@ const OrderModal: React.FC<OrderModalProps> = ({
                         { required: true, message: 'Введите количество!' },
                         { type: 'number', min: 1, message: 'Минимум 1' },
                       ]}
+                      style={{ marginBottom: 0, textAlign: 'center' }}
                     >
-                      <InputNumber min={1} style={{ width: '100%' }} />
+                      <InputNumber 
+                        min={1} 
+                        style={{ width: '80%' }}
+                      />
                     </Form.Item>
                   )}
                 />
                 <Table.Column
                   title="Действие"
                   width="20%"
+                  align="center"
                   render={(_, __, index) => (
-                    <Button
-                      danger
-                      icon={<MinusCircleOutlined />}
-                      onClick={() => remove(index)}
-                      block
-                    />
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'center' }}>
+                      <Button
+                        danger
+                        icon={<MinusCircleOutlined />}
+                        onClick={() => remove(index)}
+                      />
+                    </Form.Item>
                   )}
                 />
               </Table>

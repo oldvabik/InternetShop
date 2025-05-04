@@ -53,6 +53,11 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
             <Button 
               icon={<EditOutlined />} 
               onClick={() => onEdit(record)}
+              style={{ 
+                color: '#1890ff', 
+                borderColor: '#1890ff',
+                background: 'transparent'
+              }}
             />
             <Popconfirm
               title="Вы уверены, что хотите удалить эту категорию?"

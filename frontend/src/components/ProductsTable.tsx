@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Button, Space, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Product } from '../models/Product';
+import type { TablePaginationConfig } from 'antd/es/table';
 
 const { Column } = Table;
 
@@ -17,14 +18,17 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
     message.success('Товар успешно удален');
   };
 
+  const paginationConfig: TablePaginationConfig | false = data.length <= 10 ? false : {
+    pageSize: 10,
+    position: ['bottomRight' as const],
+    showSizeChanger: false,
+    hideOnSinglePage: true
+  };
+
   return (
     <Table 
       dataSource={data.map((p, index) => ({ ...p, key: index + 1 }))} 
-      pagination={{
-        pageSize: 10,
-        position: ['bottomRight'],
-        showSizeChanger: false
-      }}
+      pagination={paginationConfig}
       bordered
       rowKey="id"
       size="middle"
@@ -47,7 +51,11 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="Цена" 
         dataIndex="price" 
         key="price" 
-        render={(price: number) => `${price.toFixed(2)} BYN`}
+        render={(price: number) => (
+          <span style={{ fontWeight: 500, color: '#52c41a' }}>
+            {price.toFixed(2)} BYN
+          </span>
+        )}
         width={120}
         align="center"
       />
@@ -55,6 +63,14 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="Количество" 
         dataIndex="quantity" 
         key="quantity" 
+        render={(quantity: number) => (
+          <span style={{ 
+            fontWeight: 500, 
+            color: quantity < 10 ? '#f5222d' : 'inherit' 
+          }}>
+            {quantity}
+          </span>
+        )}
         width={100}
         align="center"
       />
@@ -76,6 +92,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
             <Button 
               icon={<EditOutlined />} 
               onClick={() => onEdit(record)}
+              style={{ color: '#1890ff', borderColor: '#1890ff' }}
             />
             <Popconfirm
               title="Вы уверены, что хотите удалить этот товар?"

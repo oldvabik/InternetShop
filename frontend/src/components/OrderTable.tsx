@@ -1,11 +1,10 @@
 import React from 'react';
-import { Table, Button, Popconfirm, Badge, message } from 'antd';
-import { EditOutlined, DeleteOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
+import { Table, Button, Popconfirm, Badge, message, Space } from 'antd';
+import { DeleteOutlined, ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 import { Order } from '../models/Order';
 
 interface OrderTableProps {
   data: Order[];
-  onEdit: (order: Order) => void;
   onDelete: (userId: number, orderId: number) => void;
   onViewProducts: (order: Order) => void;
   loading?: boolean;
@@ -13,7 +12,6 @@ interface OrderTableProps {
 
 const OrderTable: React.FC<OrderTableProps> = ({ 
   data, 
-  onEdit, 
   onDelete, 
   onViewProducts,
   loading = false
@@ -23,20 +21,24 @@ const OrderTable: React.FC<OrderTableProps> = ({
       title: '#',
       dataIndex: 'key',
       key: 'key',
-      width: 60,
+      width: 50,
       align: 'center' as const,
     },
     {
       title: 'Дата заказа',
       dataIndex: 'date',
       key: 'date',
+      align: 'center' as const,
+      width: 120,
       render: (date: string) => date ? new Date(date).toLocaleDateString() : 'Не указана',
     },
     {
       title: 'Пользователь',
       key: 'user',
+      align: 'center' as const,
+      width: 200,
       render: (_: any, record: Order) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <UserOutlined style={{ marginRight: 8, color: '#1890ff' }} />
           <div>
             <span style={{ fontWeight: 500 }}>
@@ -53,6 +55,8 @@ const OrderTable: React.FC<OrderTableProps> = ({
       title: 'Сумма',
       dataIndex: 'totalPrice',
       key: 'totalPrice',
+      align: 'center' as const,
+      width: 120,
       render: (amount: number | undefined) => (
         <span style={{ fontWeight: 500, color: '#52c41a' }}>
           {amount?.toFixed(2) || '0.00'} BYN
@@ -62,15 +66,20 @@ const OrderTable: React.FC<OrderTableProps> = ({
     {
       title: 'Товары',
       key: 'products',
+      align: 'center' as const,
+      width: 100,
       render: (_: any, record: Order) => {
         const count = record.orderProducts?.length || record.items?.length || 0;
         return (
           <Badge count={count} style={{ backgroundColor: '#1890ff' }}>
             <Button
-              type="text"
+              type="default" // Изменено с type="text" на type="default" для отображения обводки
               icon={<ShoppingCartOutlined />}
               onClick={() => onViewProducts(record)}
-              style={{ color: '#1890ff' }}
+              style={{ 
+                color: '#1890ff',
+                borderColor: '#1890ff', // Синяя обводка
+              }}
             />
           </Badge>
         );
@@ -79,13 +88,10 @@ const OrderTable: React.FC<OrderTableProps> = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 120,
+      width: 100,
+      align: 'center' as const,
       render: (_: any, record: Order) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button 
-            icon={<EditOutlined />} 
-            onClick={() => onEdit(record)}
-          />
+        <Space size="small">
           <Popconfirm
             title="Удалить этот заказ?"
             onConfirm={() => {
@@ -100,7 +106,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
           >
             <Button danger icon={<DeleteOutlined />} />
           </Popconfirm>
-        </div>
+        </Space>
       ),
     },
   ];
@@ -109,8 +115,14 @@ const OrderTable: React.FC<OrderTableProps> = ({
     <Table
       columns={columns}
       dataSource={data.map((o, index) => ({ ...o, key: index + 1 }))}
-      pagination={{ pageSize: 10 }}
+      pagination={{
+        pageSize: 10,
+        position: ['bottomRight'],
+        showSizeChanger: false
+      }}
+      bordered
       rowKey="id"
+      size="middle"
       loading={loading}
     />
   );
