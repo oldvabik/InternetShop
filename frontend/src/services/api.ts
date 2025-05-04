@@ -51,3 +51,35 @@ export const updateCategory = async (id: number, category: { name: string }) => 
 export const deleteCategory = async (id: number) => {
   return axios.delete(`${API_URL}/categories/${id}`);
 };
+
+export const getOrders = async () => {
+  return axios.get(`${API_URL}/orders`);
+};
+
+export const getOrder = async (id: number) => {
+  return axios.get(`${API_URL}/orders/${id}`);
+};
+
+export const getUserOrders = async (userId: number) => {
+  return axios.get(`${API_URL}/users/${userId}/orders`);
+};
+
+export const createOrder = async (userId: number, orderDto: {
+  items: { productName: string; quantity: number }[];
+}) => {
+  return axios.post(`${API_URL}/users/${userId}/orders`, orderDto);
+};
+
+export const updateOrder = async (userId: number, orderId: number, orderDto: {
+  items: { productName: string; quantity: number }[];
+}) => {
+  return axios.put(`${API_URL}/users/${userId}/orders/${orderId}`, orderDto);
+};
+
+export const deleteOrder = async (userId: number, orderId: number) => {
+  return axios.delete(`${API_URL}/users/${userId}/orders/${orderId}`);
+};
+
+export const getUsers = async () => {
+  return axios.get(`${API_URL}/users`);
+};

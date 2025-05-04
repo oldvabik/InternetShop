@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button, Space } from 'antd';
+import { Table, Button, Space, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Category } from '../models/Category';
 
@@ -12,11 +12,16 @@ interface CategoriesTableProps {
 }
 
 const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelete }) => {
+  const handleDelete = (id: number) => {
+    onDelete(id);
+    message.success('Категория успешно удалена');
+  };
+
   return (
     <Table 
       dataSource={data.map((c, index) => ({ ...c, key: index + 1 }))} 
       pagination={{
-        pageSize: 7,
+        pageSize: 10,
         position: ['bottomRight'],
         showSizeChanger: false
       }}
@@ -28,7 +33,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
         title="#" 
         dataIndex="key" 
         key="key" 
-        width={60} 
+        width={50}
         align="center"
       />
       <Column 
@@ -41,7 +46,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
       <Column
         title="Действия"
         key="actions"
-        width={120}
+        width={100}
         align="center"
         render={(_: any, record: Category) => (
           <Space size="small">
@@ -49,11 +54,17 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
               icon={<EditOutlined />} 
               onClick={() => onEdit(record)}
             />
-            <Button 
-              danger 
-              icon={<DeleteOutlined />} 
-              onClick={() => onDelete(record.id)}
-            />
+            <Popconfirm
+              title="Вы уверены, что хотите удалить эту категорию?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Button 
+                danger 
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           </Space>
         )}
       />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Layout, Form } from 'antd';
+import { Button, Card, Layout, Form, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories } from '../services/api';
 import ProductsTable from '../components/ProductsTable';
@@ -59,9 +59,10 @@ const ProductsPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteProduct(id);
-      fetchProducts();
+      setProducts(prev => prev.filter(p => p.id !== id)); // Локальное обновление состояния
     } catch (error) {
       console.error('Ошибка при удалении продукта:', error);
+      message.error('Не удалось удалить товар');
     }
   };
 
@@ -91,8 +92,8 @@ const ProductsPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', maxWidth: 1000, margin: '0 auto' }}>
-      <Content style={{ padding: '16px 0' }}>
+    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1000, margin: '0 auto' }}>
+      <Content style={{ padding: '16px 0', flex: 1 }}>
         <Card 
           title="Список товаров"
           extra={
@@ -113,9 +114,9 @@ const ProductsPage: React.FC = () => {
       <Footer style={{ 
         textAlign: 'center', 
         padding: '16px 0',
-        marginTop: 'auto'
+        flex: '0 0 auto'
       }}>
-        © 2023 Складской учёт. Все права защищены.
+        © 2025 Складской учёт. Все права защищены.
       </Footer>
 
       <ProductsModal

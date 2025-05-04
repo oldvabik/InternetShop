@@ -1,4 +1,3 @@
-// src/components/ProductsModal.tsx
 import React from 'react';
 import { Modal, Form, Input, InputNumber, Select } from 'antd';
 import { Product } from '../models/Product';
@@ -23,42 +22,44 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
 }) => {
   return (
     <Modal
-      title={editingProduct ? 'Edit Product' : 'Add Product'}
+      title={editingProduct ? 'Редактировать товар' : 'Добавить товар'}
       visible={visible}
       onOk={onOk}
       onCancel={onCancel}
+      okText="Сохранить"
+      cancelText="Отмена"
     >
       <Form form={form} layout="vertical">
         <Form.Item
           name="name"
-          label="Name"
-          rules={[{ required: true, message: 'Please input the product name!' }]}
+          label="Название"
+          rules={[{ required: true, message: 'Пожалуйста, введите название товара!' }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item
           name="price"
-          label="Price"
-          rules={[{ required: true, message: 'Please input the product price!' }]}
+          label="Цена"
+          rules={[{ required: true, message: 'Пожалуйста, введите цену товара!' }]}
         >
           <InputNumber min={0} style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item
           name="quantity"
-          label="Quantity"
-          rules={[{ required: true, message: 'Please input the product quantity!' }]}
+          label="Количество"
+          rules={[{ required: true, message: 'Пожалуйста, введите количество товара!' }]}
         >
           <InputNumber min={0} style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item
           name="category"
-          label="Category"
-          rules={[{ required: true, message: 'Please select a category!' }]}
+          label="Категория"
+          rules={[{ required: true, message: 'Пожалуйста, выберите категорию!' }]}
         >
-          <Select>
+          <Select placeholder="Выберите категорию">
             {categories.map(category => (
               <Select.Option key={category.id} value={category.id}>
                 {category.name}

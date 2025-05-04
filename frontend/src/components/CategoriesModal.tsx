@@ -1,4 +1,3 @@
-// src/components/CategoriesModal.tsx
 import React from 'react';
 import { Modal, Form, Input } from 'antd';
 import { Category } from '../models/Category';
@@ -20,16 +19,18 @@ const CategoriesModal: React.FC<CategoriesModalProps> = ({
 }) => {
   return (
     <Modal
-      title={editingCategory ? 'Edit Category' : 'Add Category'}
+      title={editingCategory ? 'Редактировать категорию' : 'Добавить категорию'}
       visible={visible}
       onOk={onOk}
       onCancel={onCancel}
+      okText="Сохранить"
+      cancelText="Отмена"
     >
       <Form form={form} layout="vertical">
         <Form.Item
           name="name"
-          label="Name"
-          rules={[{ required: true, message: 'Please input the category name!' }]}
+          label="Название"
+          rules={[{ required: true, message: 'Пожалуйста, введите название категории!' }]}
         >
           <Input />
         </Form.Item>

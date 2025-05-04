@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Button, Space } from 'antd';
+import { Table, Button, Space, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Product } from '../models/Product';
 
@@ -12,11 +12,16 @@ interface ProductsTableProps {
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete }) => {
+  const handleDelete = (id: number) => {
+    onDelete(id);
+    message.success('Товар успешно удален');
+  };
+
   return (
     <Table 
       dataSource={data.map((p, index) => ({ ...p, key: index + 1 }))} 
       pagination={{
-        pageSize: 7,
+        pageSize: 10,
         position: ['bottomRight'],
         showSizeChanger: false
       }}
@@ -28,7 +33,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="#" 
         dataIndex="key" 
         key="key" 
-        width={60} 
+        width={50} 
         align="center"
       />
       <Column 
@@ -42,12 +47,12 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="Цена" 
         dataIndex="price" 
         key="price" 
-        render={(price: number) => `${price.toFixed(2)} ₽`}
+        render={(price: number) => `${price.toFixed(2)} BYN`}
         width={120}
         align="center"
       />
       <Column 
-        title="Кол-во" 
+        title="Количество" 
         dataIndex="quantity" 
         key="quantity" 
         width={100}
@@ -64,7 +69,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
       <Column
         title="Действия"
         key="actions"
-        width={120}
+        width={100}
         align="center"
         render={(_: any, record: Product) => (
           <Space size="small">
@@ -72,11 +77,17 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
               icon={<EditOutlined />} 
               onClick={() => onEdit(record)}
             />
-            <Button 
-              danger 
-              icon={<DeleteOutlined />} 
-              onClick={() => onDelete(record.id)}
-            />
+            <Popconfirm
+              title="Вы уверены, что хотите удалить этот товар?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Button 
+                danger 
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           </Space>
         )}
       />
