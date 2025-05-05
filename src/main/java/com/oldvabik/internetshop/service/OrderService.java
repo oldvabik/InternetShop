@@ -8,11 +8,11 @@ import com.oldvabik.internetshop.repository.OrderProductRepository;
 import com.oldvabik.internetshop.repository.OrderRepository;
 import com.oldvabik.internetshop.repository.ProductRepository;
 import com.oldvabik.internetshop.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

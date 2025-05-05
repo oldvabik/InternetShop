@@ -2,16 +2,8 @@ package com.oldvabik.internetshop.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,7 +36,12 @@ public class Product {
     private Category category;
 
     @JsonBackReference
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "product",
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE},
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private Set<OrderProduct> orderProducts = new HashSet<>();
 
     @Override
