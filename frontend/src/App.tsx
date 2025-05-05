@@ -3,10 +3,11 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import ProductsPage from './pages/ProductsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import OrdersPage from './pages/OrderPage';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 
 const { Header, Content } = Layout;
+const { Text } = Typography;
 
 const App: React.FC = () => {
   return (
@@ -18,31 +19,44 @@ const App: React.FC = () => {
           zIndex: 1,
           width: '100%',
           padding: 0,
-          flex: '0 0 auto'
+          flex: '0 0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '16px'
         }}>
+          <div style={{
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            marginRight: '32px',
+            whiteSpace: 'nowrap'
+          }}>
+            <Text style={{ color: 'white' }}>Складской учёт</Text>
+          </div>
           <Menu 
             theme="dark" 
             mode="horizontal"
             style={{
               lineHeight: '64px',
-              display: 'flex',
-              justifyContent: 'flex-start',
-              paddingLeft: '24px'
+              flex: 1,
+              borderBottom: 'none',
+              background: 'transparent',
+              minWidth: 0
             }}
           >
-            <Menu.Item key="products">
+            <Menu.Item key="products" style={{ padding: '0 16px' }}>
               <Link to="/products">Продукты</Link>
             </Menu.Item>
-            <Menu.Item key="categories">
+            <Menu.Item key="categories" style={{ padding: '0 16px' }}>
               <Link to="/categories">Категории</Link>
             </Menu.Item>
-            <Menu.Item key="orders">
+            <Menu.Item key="orders" style={{ padding: '0 16px' }}>
               <Link to="/orders">Заказы</Link>
             </Menu.Item>
           </Menu>
         </Header>
         <Content style={{ 
-          padding: '24px 50px', 
+          padding: '24px', 
           marginTop: 16,
           flex: '1 0 auto',
           overflow: 'hidden'

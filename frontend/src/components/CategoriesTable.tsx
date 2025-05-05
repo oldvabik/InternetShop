@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Button, Space, Popconfirm, message } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Category } from '../models/Category';
+import type { TablePaginationConfig } from 'antd/es/table';
 
 const { Column } = Table;
 
@@ -17,14 +18,30 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
     message.success('Категория успешно удалена');
   };
 
+  const paginationConfig: TablePaginationConfig | false = data.length <= 10 ? false : {
+    pageSize: 10,
+    position: ['bottomRight'],
+    showSizeChanger: false,
+    hideOnSinglePage: true,
+    showTotal: (total, range) => (
+      <div style={{
+        position: 'absolute',
+        left: '4px',
+        fontSize: '14px',
+        color: 'rgba(0, 0, 0, 0.65)'
+      }}>
+        {range[0]}-{range[1]} из {total}
+      </div>
+    ),
+    style: {
+      position: 'relative'
+    }
+  };
+
   return (
     <Table 
       dataSource={data.map((c, index) => ({ ...c, key: index + 1 }))} 
-      pagination={{
-        pageSize: 10,
-        position: ['bottomRight'],
-        showSizeChanger: false
-      }}
+      pagination={paginationConfig}
       bordered
       rowKey="id"
       size="middle"
@@ -42,6 +59,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
         key="name" 
         align="center"
         width={300}
+        sorter={(a, b) => a.name.localeCompare(b.name)}
       />
       <Column
         title="Действия"

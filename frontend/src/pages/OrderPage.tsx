@@ -31,7 +31,10 @@ const OrdersPage: React.FC = () => {
           getProducts(),
           getUsers()
         ]);
-        setOrders(ordersRes.data);
+        setOrders(ordersRes.data.map((order: Order, index: number) => ({
+          ...order,
+          displayNumber: index + 1
+        })));
         setProducts(productsRes.data);
         setUsers(usersRes.data);
       } catch (error) {
@@ -52,7 +55,10 @@ const OrdersPage: React.FC = () => {
   const handleDelete = async (userId: number, orderId: number) => {
     try {
       await deleteOrder(userId, orderId);
-      setOrders(prev => prev.filter(o => o.id !== orderId));
+      setOrders(prev => prev.filter(o => o.id !== orderId).map((order, index) => ({
+        ...order,
+        displayNumber: index + 1
+      })));
       message.success('Заказ успешно удален');
     } catch (error) {
       message.error('Не удалось удалить заказ');
@@ -67,13 +73,32 @@ const OrdersPage: React.FC = () => {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      
+      // Validate all quantities before proceeding
+      const errors: {[key: string]: string} = {};
+      let hasErrors = false;
+      
+      values.products.forEach((product: any, index: number) => {
+        const foundProduct = products.find(p => p.id === product.productId);
+        if (foundProduct && foundProduct.quantity !== undefined && product.quantity > foundProduct.quantity) {
+          errors[index] = `Максимально доступно: ${foundProduct.quantity}`;
+          hasErrors = true;
+        }
+      });
+      
+      if (hasErrors) {
+        message.error('Некоторые товары недоступны в запрошенном количестве');
+        return;
+      }
+  
       const orderData = {
         items: values.products.map((p: any) => ({
+          productId: p.productId,
           productName: products.find(prod => prod.id === p.productId)?.name || '',
           quantity: p.quantity
         }))
       };
-
+  
       if (editingOrder && editingOrder.user?.id) {
         await updateOrder(editingOrder.user.id, editingOrder.id, orderData);
         message.success('Заказ успешно обновлен');
@@ -83,9 +108,12 @@ const OrdersPage: React.FC = () => {
       } else {
         throw new Error('User ID is required');
       }
-
+  
       const ordersRes = await getOrders();
-      setOrders(ordersRes.data);
+      setOrders(ordersRes.data.map((order: Order, index: number) => ({
+        ...order,
+        displayNumber: index + 1
+      })));
       setIsModalVisible(false);
     } catch (error: any) {
       message.error(error.message || 'Ошибка при сохранении заказа');
@@ -93,7 +121,7 @@ const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1400, margin: '0 auto' }}>
+    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1000, margin: '0 auto' }}>
       <Content style={{ padding: '16px 0', flex: 1 }}>
         <Card 
           title="Управление заказами"
@@ -113,7 +141,7 @@ const OrdersPage: React.FC = () => {
         </Card>
 
         <Modal
-          title={`Детали заказа #${selectedOrder?.id || ''}`}
+          title={`Детали заказа #${selectedOrder?.displayNumber || ''}`}
           visible={isProductsModalVisible}
           onCancel={() => setIsProductsModalVisible(false)}
           footer={null}
@@ -136,7 +164,10 @@ const OrdersPage: React.FC = () => {
               </div>
 
               <List
-                dataSource={selectedOrder.orderProducts || selectedOrder.items || []}
+                dataSource={(selectedOrder.orderProducts || selectedOrder.items || []).map((item, index) => ({
+                  ...item,
+                  displayNumber: index + 1
+                }))}
                 renderItem={(item: any) => {
                   const product = products.find(p => 
                     p.id === (item.product?.id || item.productId)
@@ -148,7 +179,7 @@ const OrdersPage: React.FC = () => {
                     <List.Item>
                       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                         <div>
-                          <Text strong>{product?.name || 'Неизвестный товар'}</Text>
+                          <Text strong>{item.displayNumber}. {product?.name || 'Неизвестный товар'}</Text>
                           <div style={{ color: '#666', fontSize: 12 }}>
                             {price.toFixed(2)} BYN × {quantity} шт.
                           </div>

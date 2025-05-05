@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Form, InputNumber, Table, Button, Select } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Product } from '../models/Product';
@@ -24,6 +24,8 @@ const OrderModal: React.FC<OrderModalProps> = ({
   users,
   form,
 }) => {
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (editingOrder) {
       const orderProducts = editingOrder.orderProducts || [];
@@ -45,7 +47,43 @@ const OrderModal: React.FC<OrderModalProps> = ({
     } else {
       form.resetFields();
     }
+    setQuantityErrors({});
   }, [editingOrder, form]);
+
+  const validateQuantity = (productId: number, quantity: number): string | null => {
+    const product = products.find(p => p.id === productId);
+    if (product && product.quantity !== undefined && quantity > product.quantity) {
+      return `Максимально доступно: ${product.quantity}`;
+    }
+    return null;
+  };
+
+  const handleQuantityChange = (index: number, value: number | null): void => {
+    const productId = form.getFieldValue(['products', index, 'productId']);
+    if (productId && value !== null) {
+      const error = validateQuantity(productId, value);
+      setQuantityErrors((prev: Record<string, string>) => ({
+        ...prev,
+        [index]: error || ''
+      }));
+    } else {
+      setQuantityErrors((prev: Record<string, string>) => ({
+        ...prev,
+        [index]: ''
+      }));
+    }
+  };
+
+  const handleProductChange = (index: number, value: number): void => {
+    const quantity = form.getFieldValue(['products', index, 'quantity']);
+    if (quantity) {
+      const error = validateQuantity(value, quantity);
+      setQuantityErrors((prev: Record<string, string>) => ({
+        ...prev,
+        [index]: error || ''
+      }));
+    }
+  };
 
   return (
     <Modal
@@ -109,10 +147,16 @@ const OrderModal: React.FC<OrderModalProps> = ({
                       <Select 
                         placeholder="Выберите товар"
                         style={{ width: '100%' }}
+                        onChange={(value) => handleProductChange(index, value)}
                       >
                         {products.map(product => (
-                          <Select.Option key={product.id} value={product.id}>
+                          <Select.Option 
+                            key={product.id} 
+                            value={product.id}
+                            disabled={product.quantity === 0}
+                          >
                             {`${product.name} - ${product.price?.toFixed(2)} BYN`}
+                            {product.quantity !== undefined && ` (Доступно: ${product.quantity})`}
                           </Select.Option>
                         ))}
                       </Select>
@@ -124,19 +168,27 @@ const OrderModal: React.FC<OrderModalProps> = ({
                   width="25%"
                   align="center"
                   render={(_, __, index) => (
-                    <Form.Item
-                      name={[index, 'quantity']}
-                      rules={[
-                        { required: true, message: 'Введите количество!' },
-                        { type: 'number', min: 1, message: 'Минимум 1' },
-                      ]}
-                      style={{ marginBottom: 0, textAlign: 'center' }}
-                    >
-                      <InputNumber 
-                        min={1} 
-                        style={{ width: '80%' }}
-                      />
-                    </Form.Item>
+                    <div>
+                      <Form.Item
+                        name={[index, 'quantity']}
+                        rules={[
+                          { required: true, message: 'Введите количество!' },
+                          { type: 'number', min: 1, message: 'Минимум 1' },
+                        ]}
+                        style={{ marginBottom: 0, textAlign: 'center' }}
+                      >
+                        <InputNumber 
+                          min={1} 
+                          style={{ width: '80%' }}
+                          onChange={(value) => handleQuantityChange(index, value as number | null)}
+                        />
+                      </Form.Item>
+                      {quantityErrors[index] && (
+                        <div style={{ color: 'red', fontSize: 12 }}>
+                          {quantityErrors[index]}
+                        </div>
+                      )}
+                    </div>
                   )}
                 />
                 <Table.Column

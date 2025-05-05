@@ -9,4 +9,5 @@ export interface Order {
   user?: User;
   orderProducts?: OrderProduct[];
   items?: OrderItem[]; 
+  displayNumber?: number; 
 }

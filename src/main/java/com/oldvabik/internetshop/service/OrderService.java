@@ -40,6 +40,7 @@ public class OrderService {
         this.orderProductRepository = orderProductRepository;
     }
 
+    @Transactional
     public Order createOrder(Long id, OrderDto orderDto) {
         final User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

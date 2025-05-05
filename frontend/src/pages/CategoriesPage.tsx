@@ -69,7 +69,7 @@ const CategoriesPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 800, margin: '0 auto' }}>
+    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 600, margin: '0 auto' }}>
       <Content style={{ padding: '16px 0', flex: 1 }}>
         <Card 
           title="Список категорий"

@@ -20,9 +20,22 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
 
   const paginationConfig: TablePaginationConfig | false = data.length <= 10 ? false : {
     pageSize: 10,
-    position: ['bottomRight' as const],
+    position: ['bottomRight'],
     showSizeChanger: false,
-    hideOnSinglePage: true
+    hideOnSinglePage: true,
+    showTotal: (total, range) => (
+      <div style={{
+        position: 'absolute',
+        left: '4px',
+        fontSize: '14px',
+        color: 'rgba(0, 0, 0, 0.65)'
+      }}>
+        {range[0]}-{range[1]} из {total}
+      </div>
+    ),
+    style: {
+      position: 'relative'
+    }
   };
 
   return (
@@ -46,11 +59,13 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         key="name" 
         align="center"
         width={200}
+        sorter={(a, b) => a.name.localeCompare(b.name)}
       />
       <Column 
         title="Цена" 
         dataIndex="price" 
         key="price" 
+        sorter={(a, b) => (a.price || 0) - (b.price || 0)}
         render={(price: number) => (
           <span style={{ fontWeight: 500, color: '#52c41a' }}>
             {price.toFixed(2)} BYN
@@ -63,6 +78,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="Количество" 
         dataIndex="quantity" 
         key="quantity" 
+        sorter={(a, b) => (a.quantity || 0) - (b.quantity || 0)}
         render={(quantity: number) => (
           <span style={{ 
             fontWeight: 500, 
@@ -78,6 +94,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
         title="Категория" 
         dataIndex="category" 
         key="category" 
+        sorter={(a, b) => (a.category?.name || '').localeCompare(b.category?.name || '')}
         render={(category) => category?.name || '-'}
         width={150}
         align="center"
