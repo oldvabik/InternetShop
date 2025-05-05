@@ -72,7 +72,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
       render: (date: string) => date ? new Date(date).toLocaleDateString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
-        year: '2-digit'
+        year: 'numeric'
       }) : '-',
     },
     {

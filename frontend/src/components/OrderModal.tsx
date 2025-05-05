@@ -248,7 +248,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                               value={product.id}
                             >
                               {`${product.name} - ${product.price?.toFixed(2)} BYN`}
-                              {product.quantity !== undefined && ` (Дост: ${product.quantity})`}
+                              {product.quantity !== undefined && ` (Ост: ${product.quantity})`}
                             </Select.Option>
                           ))}
                         </Select>
