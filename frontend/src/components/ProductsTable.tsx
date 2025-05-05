@@ -10,9 +10,15 @@ interface ProductsTableProps {
   data: Product[];
   onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
+  isMobile: boolean;
 }
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({ 
+  data, 
+  onEdit, 
+  onDelete,
+  isMobile 
+}) => {
   const handleDelete = (id: number) => {
     onDelete(id);
     message.success('Товар успешно удален');
@@ -23,7 +29,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
     position: ['bottomRight'],
     showSizeChanger: false,
     hideOnSinglePage: true,
-    showTotal: (total, range) => (
+    showTotal: isMobile ? undefined : (total, range) => (
       <div style={{
         position: 'absolute',
         left: '4px',
@@ -35,7 +41,8 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
     ),
     style: {
       position: 'relative'
-    }
+    },
+    size: isMobile ? 'small' : 'default'
   };
 
   return (
@@ -44,21 +51,24 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
       pagination={paginationConfig}
       bordered
       rowKey="id"
-      size="middle"
+      size={isMobile ? 'small' : 'middle'}
+      scroll={isMobile ? { x: true } : undefined}
     >
-      <Column 
-        title="#" 
-        dataIndex="key" 
-        key="key" 
-        width={50} 
-        align="center"
-      />
+      {!isMobile && (
+        <Column 
+          title="#" 
+          dataIndex="key" 
+          key="key" 
+          width={50} 
+          align="center"
+        />
+      )}
       <Column 
         title="Название" 
         dataIndex="name" 
         key="name" 
         align="center"
-        width={200}
+        width={isMobile ? 120 : 200}
         sorter={(a, b) => a.name.localeCompare(b.name)}
       />
       <Column 
@@ -71,11 +81,11 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
             {price.toFixed(2)} BYN
           </span>
         )}
-        width={120}
+        width={isMobile ? 100 : 120}
         align="center"
       />
       <Column 
-        title="Количество" 
+        title={isMobile ? 'Кол-во' : 'Количество'} 
         dataIndex="quantity" 
         key="quantity" 
         sorter={(a, b) => (a.quantity || 0) - (b.quantity || 0)}
@@ -87,32 +97,36 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
             {quantity}
           </span>
         )}
-        width={100}
+        width={isMobile ? 80 : 100}
         align="center"
       />
-      <Column 
-        title="Категория" 
-        dataIndex="category" 
-        key="category" 
-        sorter={(a, b) => (a.category?.name || '').localeCompare(b.category?.name || '')}
-        render={(category) => category?.name || '-'}
-        width={150}
-        align="center"
-      />
+      {!isMobile && (
+        <Column 
+          title="Категория" 
+          dataIndex="category" 
+          key="category" 
+          sorter={(a, b) => (a.category?.name || '').localeCompare(b.category?.name || '')}
+          render={(category) => category?.name || '-'}
+          width={150}
+          align="center"
+        />
+      )}
       <Column
         title="Действия"
         key="actions"
-        width={100}
+        width={isMobile ? 90 : 100}
         align="center"
+        fixed={isMobile ? 'right' : undefined}
         render={(_: any, record: Product) => (
           <Space size="small">
             <Button 
               icon={<EditOutlined />} 
               onClick={() => onEdit(record)}
               style={{ color: '#1890ff', borderColor: '#1890ff' }}
+              size={isMobile ? 'small' : 'middle'}
             />
             <Popconfirm
-              title="Вы уверены, что хотите удалить этот товар?"
+              title="Удалить товар?"
               onConfirm={() => handleDelete(record.id)}
               okText="Да"
               cancelText="Нет"
@@ -120,6 +134,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ data, onEdit, onDelete })
               <Button 
                 danger 
                 icon={<DeleteOutlined />}
+                size={isMobile ? 'small' : 'middle'}
               />
             </Popconfirm>
           </Space>

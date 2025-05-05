@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Layout, Form, message } from 'antd';
+import { Button, Card, Layout, Form, message, Grid } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories } from '../services/api';
 import ProductsTable from '../components/ProductsTable';
@@ -8,6 +8,7 @@ import { Product } from '../models/Product';
 import { Category } from '../models/Category';
 
 const { Content, Footer } = Layout;
+const { useBreakpoint } = Grid;
 
 const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -15,6 +16,7 @@ const ProductsPage: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
+  const screens = useBreakpoint();
 
   useEffect(() => {
     fetchProducts();
@@ -59,7 +61,7 @@ const ProductsPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteProduct(id);
-      setProducts(prev => prev.filter(p => p.id !== id)); // Локальное обновление состояния
+      setProducts(prev => prev.filter(p => p.id !== id));
     } catch (error) {
       console.error('Ошибка при удалении продукта:', error);
       message.error('Не удалось удалить товар');
@@ -92,28 +94,45 @@ const ProductsPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1000, margin: '0 auto' }}>
-      <Content style={{ padding: '16px 0', flex: 1 }}>
+    <Layout style={{ 
+      flex: 1, 
+      display: 'flex', 
+      flexDirection: 'column', 
+      maxWidth: screens.lg ? 1000 : '100%', 
+      margin: '0 auto',
+      padding: screens.xs ? '0 8px' : '0 16px'
+    }}>
+      <Content style={{ 
+        padding: screens.xs ? '8px 0' : '16px 0', 
+        flex: 1 
+      }}>
         <Card 
           title="Список товаров"
           extra={
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Добавить товар
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={handleAdd}
+              size={screens.xs ? 'small' : 'middle'}
+            >
+              {screens.xs ? '' : 'Добавить товар'}
             </Button>
           }
           bordered={false}
+          bodyStyle={{ padding: screens.xs ? 8 : 16 }}
         >
           <ProductsTable 
             data={products} 
             onEdit={handleEdit}
             onDelete={handleDelete}
+            isMobile={!screens.sm}
           />
         </Card>
       </Content>
       
       <Footer style={{ 
         textAlign: 'center', 
-        padding: '16px 0',
+        padding: screens.xs ? '8px 0' : '16px 0',
         flex: '0 0 auto'
       }}>
         © 2025 Складской учёт. Все права защищены.
@@ -126,6 +145,7 @@ const ProductsPage: React.FC = () => {
         editingProduct={editingProduct}
         categories={categories}
         form={form}
+        isMobile={!screens.sm}
       />
     </Layout>
   );

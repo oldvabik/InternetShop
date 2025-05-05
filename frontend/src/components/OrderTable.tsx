@@ -9,20 +9,22 @@ interface OrderTableProps {
   onDelete: (userId: number, orderId: number) => void;
   onViewProducts: (order: Order) => void;
   loading?: boolean;
+  isMobile: boolean;
 }
 
 const OrderTable: React.FC<OrderTableProps> = ({ 
   data, 
   onDelete, 
   onViewProducts,
-  loading = false
+  loading = false,
+  isMobile
 }) => {
   const paginationConfig: TablePaginationConfig | false = data.length <= 10 ? false : {
     pageSize: 10,
     position: ['bottomRight'],
     showSizeChanger: false,
     hideOnSinglePage: true,
-    showTotal: (total, range) => (
+    showTotal: isMobile ? undefined : (total, range) => (
       <div style={{
         position: 'absolute',
         left: '4px',
@@ -34,24 +36,22 @@ const OrderTable: React.FC<OrderTableProps> = ({
     ),
     style: {
       position: 'relative'
-    }
+    },
+    size: isMobile ? 'small' : 'default'
   };
 
-  // Функция для сортировки по дате
   const dateSorter = (a: Order, b: Order) => {
     const dateA = a.date ? new Date(a.date).getTime() : 0;
     const dateB = b.date ? new Date(b.date).getTime() : 0;
     return dateA - dateB;
   };
 
-  // Функция для сортировки по имени пользователя
   const userSorter = (a: Order, b: Order) => {
     const nameA = `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.toLowerCase();
     const nameB = `${b.user?.firstName || ''} ${b.user?.lastName || ''}`.toLowerCase();
     return nameA.localeCompare(nameB);
   };
 
-  // Функция для сортировки по сумме
   const amountSorter = (a: Order, b: Order) => (a.totalPrice || 0) - (b.totalPrice || 0);
 
   const columns: ColumnType<Order>[] = [
@@ -63,28 +63,32 @@ const OrderTable: React.FC<OrderTableProps> = ({
       align: 'center',
     },
     {
-      title: 'Дата заказа',
+      title: 'Дата',
       dataIndex: 'date',
       key: 'date',
       align: 'center',
-      width: 120,
+      width: isMobile ? 90 : 120,
       sorter: dateSorter,
-      render: (date: string) => date ? new Date(date).toLocaleDateString() : 'Не указана',
+      render: (date: string) => date ? new Date(date).toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+      }) : '-',
     },
     {
-      title: 'Пользователь',
+      title: 'Клиент',
       key: 'user',
       align: 'center',
-      width: 200,
+      width: isMobile ? 150 : 200,
       sorter: userSorter,
       render: (_: any, record: Order) => (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <UserOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+          {!isMobile && <UserOutlined style={{ marginRight: 8, color: '#1890ff' }} />}
           <div>
             <span style={{ fontWeight: 500 }}>
-              {record.user?.firstName || 'Неизвестно'} {record.user?.lastName || ''}
+              {record.user?.firstName || 'Неизв.'} {!isMobile && record.user?.lastName}
             </span>
-            {record.user?.email && (
+            {!isMobile && record.user?.email && (
               <div style={{ fontSize: 12, color: '#666' }}>{record.user.email}</div>
             )}
           </div>
@@ -96,7 +100,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
       dataIndex: 'totalPrice',
       key: 'totalPrice',
       align: 'center',
-      width: 120,
+      width: isMobile ? 90 : 120,
       sorter: amountSorter,
       render: (amount: number | undefined) => (
         <span style={{ fontWeight: 500, color: '#52c41a' }}>
@@ -105,10 +109,10 @@ const OrderTable: React.FC<OrderTableProps> = ({
       ),
     },
     {
-      title: 'Товары',
+      title: isMobile ? 'Тов.' : 'Товары',
       key: 'products',
       align: 'center',
-      width: 100,
+      width: isMobile ? 70 : 100,
       render: (_: any, record: Order) => {
         const count = record.orderProducts?.length || record.items?.length || 0;
         return (
@@ -121,6 +125,7 @@ const OrderTable: React.FC<OrderTableProps> = ({
                 color: '#1890ff',
                 borderColor: '#1890ff',
               }}
+              size={isMobile ? 'small' : 'middle'}
             />
           </Badge>
         );
@@ -129,12 +134,13 @@ const OrderTable: React.FC<OrderTableProps> = ({
     {
       title: 'Действия',
       key: 'actions',
-      width: 100,
+      width: isMobile ? 80 : 100,
       align: 'center',
+      fixed: isMobile ? 'right' : undefined,
       render: (_: any, record: Order) => (
         <Space size="small">
           <Popconfirm
-            title="Удалить этот заказ?"
+            title="Удалить заказ?"
             onConfirm={() => {
               if (record.user?.id && record.id) {
                 onDelete(record.user.id, record.id);
@@ -145,7 +151,11 @@ const OrderTable: React.FC<OrderTableProps> = ({
             okText="Да"
             cancelText="Нет"
           >
-            <Button danger icon={<DeleteOutlined />} />
+            <Button 
+              danger 
+              icon={<DeleteOutlined />} 
+              size={isMobile ? 'small' : 'middle'}
+            />
           </Popconfirm>
         </Space>
       ),
@@ -159,8 +169,9 @@ const OrderTable: React.FC<OrderTableProps> = ({
       pagination={paginationConfig}
       bordered
       rowKey="id"
-      size="middle"
+      size={isMobile ? 'small' : 'middle'}
       loading={loading}
+      scroll={isMobile ? { x: true } : undefined}
     />
   );
 };

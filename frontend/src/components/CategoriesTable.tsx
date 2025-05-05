@@ -10,9 +10,15 @@ interface CategoriesTableProps {
   data: Category[];
   onEdit: (category: Category) => void;
   onDelete: (id: number) => void;
+  isMobile: boolean;
 }
 
-const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelete }) => {
+const CategoriesTable: React.FC<CategoriesTableProps> = ({ 
+  data, 
+  onEdit, 
+  onDelete,
+  isMobile 
+}) => {
   const handleDelete = (id: number) => {
     onDelete(id);
     message.success('Категория успешно удалена');
@@ -23,7 +29,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
     position: ['bottomRight'],
     showSizeChanger: false,
     hideOnSinglePage: true,
-    showTotal: (total, range) => (
+    showTotal: isMobile ? undefined : (total, range) => (
       <div style={{
         position: 'absolute',
         left: '4px',
@@ -35,7 +41,8 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
     ),
     style: {
       position: 'relative'
-    }
+    },
+    size: isMobile ? 'small' : 'default'
   };
 
   return (
@@ -44,28 +51,32 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
       pagination={paginationConfig}
       bordered
       rowKey="id"
-      size="middle"
+      size={isMobile ? 'small' : 'middle'}
+      scroll={isMobile ? { x: true } : undefined}
     >
-      <Column 
-        title="#" 
-        dataIndex="key" 
-        key="key" 
-        width={50}
-        align="center"
-      />
+      {!isMobile && (
+        <Column 
+          title="#" 
+          dataIndex="key" 
+          key="key" 
+          width={50}
+          align="center"
+        />
+      )}
       <Column 
         title="Название" 
         dataIndex="name" 
         key="name" 
         align="center"
-        width={300}
+        width={isMobile ? 200 : 300}
         sorter={(a, b) => a.name.localeCompare(b.name)}
       />
       <Column
         title="Действия"
         key="actions"
-        width={100}
+        width={isMobile ? 90 : 100}
         align="center"
+        fixed={isMobile ? 'right' : undefined}
         render={(_: any, record: Category) => (
           <Space size="small">
             <Button 
@@ -76,9 +87,10 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
                 borderColor: '#1890ff',
                 background: 'transparent'
               }}
+              size={isMobile ? 'small' : 'middle'}
             />
             <Popconfirm
-              title="Вы уверены, что хотите удалить эту категорию?"
+              title="Удалить категорию?"
               onConfirm={() => handleDelete(record.id)}
               okText="Да"
               cancelText="Нет"
@@ -86,6 +98,7 @@ const CategoriesTable: React.FC<CategoriesTableProps> = ({ data, onEdit, onDelet
               <Button 
                 danger 
                 icon={<DeleteOutlined />}
+                size={isMobile ? 'small' : 'middle'}
               />
             </Popconfirm>
           </Space>

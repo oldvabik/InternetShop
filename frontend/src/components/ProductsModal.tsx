@@ -10,6 +10,7 @@ interface ProductsModalProps {
   editingProduct: Product | null;
   categories: Category[];
   form: any;
+  isMobile: boolean;
 }
 
 const ProductsModal: React.FC<ProductsModalProps> = ({
@@ -19,6 +20,7 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
   editingProduct,
   categories,
   form,
+  isMobile,
 }) => {
   return (
     <Modal
@@ -28,6 +30,8 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
       onCancel={onCancel}
       okText="Сохранить"
       cancelText="Отмена"
+      width={isMobile ? '90%' : 600}
+      bodyStyle={{ padding: isMobile ? '16px 8px' : '24px' }}
     >
       <Form form={form} layout="vertical">
         <Form.Item
@@ -35,7 +39,7 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
           label="Название"
           rules={[{ required: true, message: 'Пожалуйста, введите название товара!' }]}
         >
-          <Input />
+          <Input size={isMobile ? 'small' : 'middle'} />
         </Form.Item>
 
         <Form.Item
@@ -43,7 +47,11 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
           label="Цена"
           rules={[{ required: true, message: 'Пожалуйста, введите цену товара!' }]}
         >
-          <InputNumber min={0} style={{ width: '100%' }} />
+          <InputNumber 
+            min={0} 
+            style={{ width: '100%' }} 
+            size={isMobile ? 'small' : 'middle'} 
+          />
         </Form.Item>
 
         <Form.Item
@@ -51,7 +59,11 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
           label="Количество"
           rules={[{ required: true, message: 'Пожалуйста, введите количество товара!' }]}
         >
-          <InputNumber min={0} style={{ width: '100%' }} />
+          <InputNumber 
+            min={0} 
+            style={{ width: '100%' }} 
+            size={isMobile ? 'small' : 'middle'} 
+          />
         </Form.Item>
 
         <Form.Item
@@ -59,7 +71,10 @@ const ProductsModal: React.FC<ProductsModalProps> = ({
           label="Категория"
           rules={[{ required: true, message: 'Пожалуйста, выберите категорию!' }]}
         >
-          <Select placeholder="Выберите категорию">
+          <Select 
+            placeholder="Выберите категорию" 
+            size={isMobile ? 'small' : 'middle'}
+          >
             {categories.map(category => (
               <Select.Option key={category.id} value={category.id}>
                 {category.name}

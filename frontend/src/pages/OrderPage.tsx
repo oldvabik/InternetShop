@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Layout, Modal, List, Typography, message, Form } from 'antd';
+import { Button, Card, Layout, Modal, List, Typography, message, Form, Grid } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { getOrders, createOrder, updateOrder, deleteOrder, getProducts, getUsers } from '../services/api';
 import OrderTable from '../components/OrderTable';
@@ -10,6 +10,7 @@ import { User } from '../models/User';
 
 const { Content, Footer } = Layout;
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -21,6 +22,7 @@ const OrdersPage: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [form] = Form.useForm();
+  const screens = useBreakpoint();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,7 +76,6 @@ const OrdersPage: React.FC = () => {
     try {
       const values = await form.validateFields();
       
-      // Validate all quantities before proceeding
       const errors: {[key: string]: string} = {};
       let hasErrors = false;
       
@@ -121,22 +122,39 @@ const OrdersPage: React.FC = () => {
   };
 
   return (
-    <Layout style={{ flex: 1, display: 'flex', flexDirection: 'column', maxWidth: 1000, margin: '0 auto' }}>
-      <Content style={{ padding: '16px 0', flex: 1 }}>
+    <Layout style={{ 
+      flex: 1, 
+      display: 'flex', 
+      flexDirection: 'column', 
+      maxWidth: screens.lg ? 1000 : '100%', 
+      margin: '0 auto',
+      padding: screens.xs ? '0 8px' : '0 16px'
+    }}>
+      <Content style={{ 
+        padding: screens.xs ? '8px 0' : '16px 0', 
+        flex: 1 
+      }}>
         <Card 
           title="Управление заказами"
           extra={
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Новый заказ
+            <Button 
+              type="primary" 
+              icon={<PlusOutlined />} 
+              onClick={handleAdd}
+              size={screens.xs ? 'small' : 'middle'}
+            >
+              {screens.xs ? '' : 'Новый заказ'}
             </Button>
           }
           bordered={false}
           loading={loading}
+          bodyStyle={{ padding: screens.xs ? 8 : 16 }}
         >
           <OrderTable 
             data={orders}
             onDelete={handleDelete}
             onViewProducts={handleViewProducts}
+            isMobile={!screens.sm}
           />
         </Card>
 
@@ -145,7 +163,8 @@ const OrdersPage: React.FC = () => {
           visible={isProductsModalVisible}
           onCancel={() => setIsProductsModalVisible(false)}
           footer={null}
-          width={600}
+          width={screens.xs ? '90%' : 600}
+          bodyStyle={{ padding: screens.xs ? '16px 8px' : '24px' }}
         >
           {selectedOrder && (
             <>
@@ -207,12 +226,13 @@ const OrdersPage: React.FC = () => {
           products={products}
           users={users}
           form={form}
+          isMobile={!screens.sm}
         />
       </Content>
       
       <Footer style={{ 
         textAlign: 'center', 
-        padding: '16px 0',
+        padding: screens.xs ? '8px 0' : '16px 0',
         flex: '0 0 auto'
       }}>
         © 2025 Складской учёт. Все права защищены.

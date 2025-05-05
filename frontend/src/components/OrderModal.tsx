@@ -13,12 +13,13 @@ interface OrderModalProps {
   products: Product[];
   users: User[];
   form: any;
+  isMobile: boolean;
 }
 
 interface OrderProductItem {
   productId?: number;
   quantity?: number;
-  key?: string; // для уникальности в Form.List
+  key?: string;
 }
 
 const OrderModal: React.FC<OrderModalProps> = ({
@@ -29,6 +30,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
   products,
   users,
   form,
+  isMobile,
 }) => {
   const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
   const [selectedProducts, setSelectedProducts] = useState<Set<number>>(new Set());
@@ -54,7 +56,6 @@ const OrderModal: React.FC<OrderModalProps> = ({
         products: initialProducts,
       });
       
-      // Инициализируем множество выбранных продуктов
       const productIds = initialProducts.map(p => p.productId).filter(Boolean) as number[];
       setSelectedProducts(new Set(productIds));
     } else {
@@ -67,7 +68,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
   const validateQuantity = (productId: number, quantity: number): string | null => {
     const product = products.find(p => p.id === productId);
     if (product && product.quantity !== undefined && quantity > product.quantity) {
-      return `Максимально доступно: ${product.quantity}`;
+      return `Макс: ${product.quantity}`;
     }
     return null;
   };
@@ -91,14 +92,12 @@ const OrderModal: React.FC<OrderModalProps> = ({
   const handleProductChange = (index: number, value: number): void => {
     const currentProducts: OrderProductItem[] = form.getFieldValue('products') || [];
     
-    // Проверяем, не выбран ли уже этот продукт в другом поле
     const isDuplicate = Array.from(selectedProducts).some(
       (id, i) => id === value && i !== index
     );
     
     if (isDuplicate) {
-      message.warning('Этот продукт уже добавлен в заказ');
-      // Возвращаем предыдущее значение
+      message.warning('Этот продукт уже добавлен');
       form.setFieldsValue({
         products: currentProducts.map((item, i) => 
           i === index ? { ...item, productId: undefined } : item
@@ -107,7 +106,6 @@ const OrderModal: React.FC<OrderModalProps> = ({
       return;
     }
     
-    // Обновляем множество выбранных продуктов
     const newSelectedProducts = new Set(selectedProducts);
     const prevProductId = currentProducts[index]?.productId;
     
@@ -132,13 +130,12 @@ const OrderModal: React.FC<OrderModalProps> = ({
   };
 
   const handleAddProduct = (add: () => void) => {
-    // Проверяем, есть ли еще доступные продукты для добавления
     const availableProducts = products.filter(
       p => !selectedProducts.has(p.id) && (p.quantity === undefined || p.quantity > 0)
     );
     
     if (availableProducts.length === 0) {
-      message.warning('Все доступные продукты уже добавлены в заказ');
+      message.warning('Все доступные продукты уже добавлены');
       return;
     }
     
@@ -156,35 +153,34 @@ const OrderModal: React.FC<OrderModalProps> = ({
   };
 
   const getAvailableProducts = (currentIndex: number, currentProductId?: number) => {
-    return products.filter(product => {
-      // Продукт доступен если:
-      // 1. Он не выбран в других полях ИЛИ это текущий выбранный продукт этого поля
-      // 2. И он есть в наличии (quantity === undefined или quantity > 0)
-      return (
-        (!selectedProducts.has(product.id) || product.id === currentProductId) &&
-        (product.quantity === undefined || product.quantity > 0)
-      );
-    });
+    return products.filter(product => (
+      (!selectedProducts.has(product.id) || product.id === currentProductId) &&
+      (product.quantity === undefined || product.quantity > 0)
+    ));
   };
 
   return (
     <Modal
-      title={editingOrder ? 'Редактировать заказ' : 'Создать новый заказ'}
+      title={editingOrder ? 'Редактировать заказ' : 'Создать заказ'}
       visible={visible}
       onOk={onOk}
       onCancel={onCancel}
-      width={700}
+      width={isMobile ? '90%' : 700}
       okText="Сохранить"
       cancelText="Отмена"
       destroyOnClose
+      bodyStyle={{ padding: isMobile ? '16px 8px' : '24px' }}
     >
       <Form form={form} layout="vertical">
         <Form.Item
           name="userId"
           label="Клиент"
-          rules={[{ required: true, message: 'Пожалуйста, выберите клиента!' }]}
+          rules={[{ required: true, message: 'Выберите клиента!' }]}
         >
-          <Select placeholder="Выберите клиента">
+          <Select 
+            placeholder="Выберите клиента"
+            size={isMobile ? 'small' : 'middle'}
+          >
             {users.map(user => (
               <Select.Option key={user.id} value={user.id}>
                 {`${user.firstName} ${user.lastName}${user.email ? ` (${user.email})` : ''}`}
@@ -196,22 +192,31 @@ const OrderModal: React.FC<OrderModalProps> = ({
         <Form.List name="products">
           {(fields, { add, remove }) => (
             <>
-              <div style={{ marginBottom: 8, fontWeight: 'bold', textAlign: 'center' }}>
+              <div style={{ 
+                marginBottom: 8, 
+                fontWeight: 'bold', 
+                textAlign: 'center',
+                fontSize: isMobile ? 14 : undefined
+              }}>
                 Товары в заказе:
               </div>
               <Table
                 dataSource={fields}
                 pagination={false}
                 rowKey="key"
-                scroll={{ y: 240 }}
+                scroll={{ y: isMobile ? 180 : 240 }}
                 bordered
+                size={isMobile ? 'small' : 'middle'}
                 footer={() => (
                   <Button
                     type="dashed"
                     onClick={() => handleAddProduct(add)}
                     icon={<PlusOutlined />}
                     block
-                    disabled={products.filter(p => !selectedProducts.has(p.id) && (p.quantity === undefined || p.quantity > 0)).length === 0}
+                    size={isMobile ? 'small' : 'middle'}
+                    disabled={products.filter(
+                      p => !selectedProducts.has(p.id) && (p.quantity === undefined || p.quantity > 0)
+                    ).length === 0}
                   >
                     Добавить товар
                   </Button>
@@ -234,6 +239,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                         <Select 
                           placeholder="Выберите товар"
                           style={{ width: '100%' }}
+                          size={isMobile ? 'small' : 'middle'}
                           onChange={(value) => handleProductChange(index, value)}
                         >
                           {availableProducts.map(product => (
@@ -242,7 +248,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                               value={product.id}
                             >
                               {`${product.name} - ${product.price?.toFixed(2)} BYN`}
-                              {product.quantity !== undefined && ` (Доступно: ${product.quantity})`}
+                              {product.quantity !== undefined && ` (Дост: ${product.quantity})`}
                             </Select.Option>
                           ))}
                         </Select>
@@ -251,7 +257,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                   }}
                 />
                 <Table.Column
-                  title="Кол-во"
+                  title={isMobile ? 'Кол-во' : 'Количество'}
                   width="25%"
                   align="center"
                   render={(_, __, index) => (
@@ -266,7 +272,8 @@ const OrderModal: React.FC<OrderModalProps> = ({
                       >
                         <InputNumber 
                           min={1} 
-                          style={{ width: '80%' }}
+                          style={{ width: isMobile ? '70%' : '80%' }}
+                          size={isMobile ? 'small' : 'middle'}
                           onChange={(value) => handleQuantityChange(index, value as number | null)}
                         />
                       </Form.Item>
@@ -290,6 +297,7 @@ const OrderModal: React.FC<OrderModalProps> = ({
                           danger
                           icon={<MinusCircleOutlined />}
                           onClick={() => handleRemoveProduct(remove, index, currentProductId)}
+                          size={isMobile ? 'small' : 'middle'}
                         />
                       </Form.Item>
                     );
