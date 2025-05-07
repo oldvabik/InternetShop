@@ -3,10 +3,11 @@ services:
     image: postgres:15
     ports:
       - '5432:5432'
+    env_file: .env
     environment:
-      POSTGRES_DB: warehousemanagement
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -20,10 +21,11 @@ services:
       - db
     ports:
       - '8080:8080'
+    env_file: .env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/warehousemanagement
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     networks:
       - wm-network
 
