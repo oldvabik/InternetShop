@@ -83,4 +83,3 @@ export const deleteOrder = async (userId: number, orderId: number) => {
 export const getUsers = async () => {
   return axios.get(`${API_URL}/users`);
 };
-
